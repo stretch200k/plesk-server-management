@@ -1,0 +1,7 @@
+---
+- name: Plesk bijwerken
+  hosts: all
+  become: yes
+  tasks:
+    - name: Update Plesk
+      command: plesk installer update --all
