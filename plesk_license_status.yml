@@ -1,6 +1,6 @@
 ---
 - name: Check Plesk license status
-  hosts: plesk_servers
+  hosts: all
   become: yes
   tasks:
     - name: Get Plesk license status
