@@ -1,0 +1,7 @@
+---
+- name: Forceer logrotatie
+  hosts: all
+  become: yes
+  tasks:
+    - name: Forceer logrotatie
+      command: logrotate /etc/logrotate.conf
