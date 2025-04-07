@@ -1,0 +1,12 @@
+---
+- name: List all domains on Plesk server
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Get list of domains
+      command: plesk bin domain --list
+      register: domain_list
+
+    - name: Show domain list
+      debug:
+        msg: "{{ domain_list.stdout }}"
