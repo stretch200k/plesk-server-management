@@ -1,0 +1,14 @@
+---
+- name: Herstart Plesk-diensten
+  hosts: all
+  become: yes
+  tasks:
+    - name: Herstart Plesk webserver
+      service:
+        name: psa
+        state: restarted
+
+    - name: Herstart Plesk database
+      service:
+        name: mysqld
+        state: restarted
