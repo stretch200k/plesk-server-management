@@ -1,0 +1,12 @@
+---
+- name: Controleer schijfgebruik
+  hosts: all
+  become: yes
+  tasks:
+    - name: Haal schijfgebruik op
+      command: df -h
+      register: disk_usage
+
+    - name: Toon schijfgebruik
+      debug:
+        msg: "{{ disk_usage.stdout }}"
