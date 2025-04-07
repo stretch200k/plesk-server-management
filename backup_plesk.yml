@@ -1,0 +1,7 @@
+---
+- name: Maak een Plesk-back-up
+  hosts: all
+  become: yes
+  tasks:
+    - name: Start Plesk back-up
+      command: plesk backup --all
