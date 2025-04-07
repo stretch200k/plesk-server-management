@@ -1,0 +1,7 @@
+---
+- name: Vernieuw Let's Encrypt certificaten
+  hosts: all
+  become: yes
+  tasks:
+    - name: Vernieuw Let's Encrypt certificaat
+      command: plesk bin certbot --renew
