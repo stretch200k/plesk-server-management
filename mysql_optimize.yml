@@ -1,0 +1,21 @@
+---
+- name: Optimize MySQL databases
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Get list of MySQL databases
+      mysql_db:
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        state: list
+      register: mysql_databases
+
+    - name: Optimize databases
+      mysql_db:
+        name: "{{ item }}"
+        login_user: root
+        login_password: "{{ mysql_root_password }}"
+        state: present
+        collation: utf8_general_ci
+      loop: "{{ mysql_databases.databases }}"
+      when: mysql_databases.databases | length > 0
