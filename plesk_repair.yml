@@ -1,0 +1,13 @@
+---
+- name: Run Plesk repair tool
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Run Plesk repair
+      command: plesk repair all --restore
+      register: repair_status
+      failed_when: repair_status.rc != 0
+
+    - name: Show repair status
+      debug:
+        msg: "{{ repair_status.stdout }}"
