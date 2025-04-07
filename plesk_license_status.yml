@@ -1,0 +1,13 @@
+---
+- name: Check Plesk license status
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Get Plesk license status
+      command: plesk bin license -i
+      register: license_status
+      changed_when: false
+
+    - name: Show license status
+      debug:
+        msg: "{{ license_status.stdout }}"
