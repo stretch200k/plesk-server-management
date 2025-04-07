@@ -1,0 +1,13 @@
+---
+- name: Check if Fail2Ban is active
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Check Fail2Ban status
+      command: systemctl is-active fail2ban
+      register: fail2ban_status
+      ignore_errors: yes
+
+    - name: Show Fail2Ban status
+      debug:
+        msg: "Fail2Ban is {{ fail2ban_status.stdout }}"
