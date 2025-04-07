@@ -1,0 +1,13 @@
+---
+- name: Check mail queue for Plesk
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Get mail queue status
+      command: plesk bin mail -q
+      register: mail_queue
+      failed_when: mail_queue.rc != 0
+
+    - name: Show mail queue
+      debug:
+        msg: "{{ mail_queue.stdout }}"
