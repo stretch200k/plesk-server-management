@@ -1,0 +1,10 @@
+---
+- name: Installeer beveiligingsupdates
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installeer alleen beveiligingsupdates
+      apt:
+        upgrade: yes
+        only_security: yes
+      when: ansible_os_family == "Debian"
