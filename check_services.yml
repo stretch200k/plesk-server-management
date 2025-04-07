@@ -1,0 +1,20 @@
+---
+- name: Controleer Plesk-diensten
+  hosts: all
+  become: yes
+  tasks:
+    - name: Check status van Plesk webserver
+      service:
+        name: psa
+        state: started
+      register: psa_status
+
+    - name: Check status van Plesk database
+      service:
+        name: mysqld
+        state: started
+      register: mysqld_status
+
+    - name: Toon resultaten van Plesk-status
+      debug:
+        msg: "Plesk Webserver status: {{ psa_status.state }}, Plesk DB status: {{ mysqld_status.state }}"
