@@ -1,6 +1,6 @@
 ---
 - name: List all domains on Plesk server
-  hosts: plesk_servers
+  hosts: all
   become: yes
   tasks:
     - name: Get list of domains
