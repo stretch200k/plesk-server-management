@@ -1,0 +1,12 @@
+---
+- name: View Plesk log files
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Get Plesk logs
+      command: cat /var/log/plesk/panel.log
+      register: plesk_logs
+
+    - name: Show Plesk logs
+      debug:
+        msg: "{{ plesk_logs.stdout }}"
