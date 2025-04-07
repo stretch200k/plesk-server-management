@@ -1,6 +1,6 @@
 ---
 - name: Check if Fail2Ban is active
-  hosts: plesk_servers
+  hosts: all
   become: yes
   tasks:
     - name: Check Fail2Ban status
