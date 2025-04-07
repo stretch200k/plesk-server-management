@@ -1,0 +1,15 @@
+---
+- name: Check Plesk webmail service status
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Check if webmail service is running
+      systemd:
+        name: sw-cp-server
+        state: started
+        enabled: yes
+      register: webmail_status
+
+    - name: Show webmail service status
+      debug:
+        msg: "Webmail is {{ webmail_status.state }}"
