@@ -1,0 +1,15 @@
+---
+- name: Test and restart Nginx configuration
+  hosts: plesk_servers
+  become: yes
+  tasks:
+    - name: Test Nginx configuration
+      command: nginx -t
+      register: nginx_test
+      failed_when: nginx_test.rc != 0
+
+    - name: Restart Nginx if configuration is OK
+      service:
+        name: nginx
+        state: restarted
+      when: nginx_test.rc == 0
