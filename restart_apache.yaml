@@ -1,0 +1,10 @@
+---
+- name: restart_apache
+  hosts: all
+  become: true
+  tasks:
+    - name: Restart Apache2 service
+      systemd:
+        name: apache2
+        state: restarted
+        enabled: yes
