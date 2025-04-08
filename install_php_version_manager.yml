@@ -1,0 +1,7 @@
+---
+- name: Install PHP version manager on Plesk
+  hosts: all
+  become: true
+  tasks:
+    - name: Install Plesk PHP version manager
+      command: plesk installer --select-release-id Plesk_18_0_36 --install-component php
