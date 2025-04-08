@@ -1,0 +1,12 @@
+- name: Get last 50 lines of maillog
+  hosts: all
+  become: yes
+  tasks:
+    - name: Tail last 50 lines of maillog
+      command: tail -n 50 /var/log/maillog
+      register: maillog_output
+      failed_when: maillog_output.rc != 0
+
+    - name: Show maillog output
+      debug:
+        msg: "{{ maillog_output.stdout_lines }}"
