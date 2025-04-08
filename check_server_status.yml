@@ -1,0 +1,18 @@
+---
+- name: Check system health and status
+  hosts: all
+  become: true
+  tasks:
+    - name: Check disk usage
+      command: df -h
+      register: disk_usage
+    - name: Display disk usage
+      debug:
+        var: disk_usage.stdout
+
+    - name: Check memory usage
+      command: free -m
+      register: memory_usage
+    - name: Display memory usage
+      debug:
+        var: memory_usage.stdout
