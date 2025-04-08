@@ -1,0 +1,9 @@
+---
+- name: Install Plesk Cgroups plugin
+  hosts: all
+  become: true
+  tasks:
+    - name: Install the Cgroups plugin for Plesk
+      command: plesk bin extension --install cgroups
+      args:
+        chdir: "/usr/local/psa/bin/"
