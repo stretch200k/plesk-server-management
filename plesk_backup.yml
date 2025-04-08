@@ -1,0 +1,7 @@
+---
+- name: Backup Plesk configuration and data
+  hosts: all
+  become: true
+  tasks:
+    - name: Create Plesk backup
+      command: plesk bin pleskbackup --create --output-file=/var/backups/plesk_backup_{{ ansible_date_time.date }}.tar
