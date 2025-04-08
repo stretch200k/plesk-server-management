@@ -1,0 +1,10 @@
+---
+- name: restart_postfix
+  hosts: all
+  become: true
+  tasks:
+    - name: Restart Postfix service
+      systemd:
+        name: postfix
+        state: restarted
+        enabled: yes
