@@ -1,0 +1,10 @@
+---
+- name: Restart FTP server (Pure-FTPd)
+  hosts: all
+  become: true
+  tasks:
+    - name: Restart Pure-FTPd service
+      systemd:
+        name: pure-ftpd
+        state: restarted
+        enabled: yes
