@@ -1,0 +1,15 @@
+---
+- name: Install the latest Plesk version
+  hosts: all
+  become: true
+  tasks:
+    - name: Download the Plesk installer script
+      get_url:
+        url: https://autoinstall.plesk.com/plesk-installer
+        dest: /tmp/plesk-installer
+        mode: '0755'
+
+    - name: Install Plesk using the latest version installer
+      command: /tmp/plesk-installer --install-everything
+      args:
+        creates: /usr/local/psa/version
