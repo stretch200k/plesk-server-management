@@ -1,0 +1,7 @@
+---
+- name: Update Plesk and server components
+  hosts: all
+  become: true
+  tasks:
+    - name: Update Plesk server
+      command: plesk installer update
