@@ -1,6 +1,6 @@
 ---
 - name: Check mail queue for Plesk
-  hosts: plesk_servers
+  hosts: all
   become: yes
   tasks:
     - name: Get mail queue status
