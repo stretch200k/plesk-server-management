@@ -1,0 +1,7 @@
+---
+- name: Enable auto updates for Plesk
+  hosts: all
+  become: true
+  tasks:
+    - name: Enable Plesk auto-updates
+      command: plesk bin autoinstaller --install-everything --upgrade
