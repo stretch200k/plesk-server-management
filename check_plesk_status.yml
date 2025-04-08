@@ -1,0 +1,7 @@
+---
+- name: check_plesk_status
+  hosts: all
+  become: true
+  tasks:
+    - name: Check Plesk status
+      command: plesk version
