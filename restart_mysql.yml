@@ -1,0 +1,10 @@
+---
+- name: restart_mysql
+  hosts: all
+  become: true
+  tasks:
+    - name: Restart MySQL service
+      systemd:
+        name: mysql
+        state: restarted
+        enabled: yes
