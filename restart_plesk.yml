@@ -1,0 +1,10 @@
+---
+- name: restart_plesk
+  hosts: all
+  become: true
+  tasks:
+    - name: Restart Plesk service
+      systemd:
+        name: psa
+        state: restarted
+        enabled: yes
