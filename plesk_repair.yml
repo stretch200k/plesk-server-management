@@ -1,6 +1,6 @@
 ---
 - name: Run Plesk repair tool
-  hosts: plesk_servers
+  hosts: all
   become: yes
   tasks:
     - name: Run Plesk repair
