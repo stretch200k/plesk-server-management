@@ -3,7 +3,7 @@
   become: yes
   tasks:
     - name: Run Plesk repair
-      command: plesk repair all -y --restore
+      command: plesk repair all -y
       register: repair_status
       failed_when: repair_status.rc != 0
 
