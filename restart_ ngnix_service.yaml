@@ -1,0 +1,10 @@
+---
+- name: Herstart NGINX op alle servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Herstart NGINX service
+      systemd:
+        name: nginx
+        state: restarted
+        enabled: yes
