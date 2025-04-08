@@ -1,0 +1,14 @@
+---
+- name: install_plesk_migration_tool
+  hosts: all
+  become: true
+  tasks:
+    - name: Add Plesk repository
+      apt_repository:
+        repo: 'deb http://autoinstall.plesk.com/plesk9/debian stable all'
+        state: present
+
+    - name: Install Plesk Migration Tool
+      apt:
+        name: plesk-migrator
+        state: present
