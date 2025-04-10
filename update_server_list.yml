@@ -1,11 +1,7 @@
+---
 - name: Voeg hosts toe aan AWX met IP als naam en hostnaam als omschrijving
   hosts: all
   gather_facts: false
-  vars:
-    awx_url: "http://185.107.90.120:31151/api/v2"  # AWX API URL
-    awx_username: "admin"  # Je AWX gebruikersnaam
-    awx_password: "FWd2tp79RoY8NMqAWhQUxffXF0RG65T4"  # Je AWX wachtwoord of API-token
-    inventory_name: "Managed Plesk Servers"  # De naam van je AWX-inventaris
   tasks:
     - name: Haal de lijst van hostnamen en IP-adressen op uit bestand
       slurp:
@@ -21,13 +17,18 @@
         hosts: "{{ ip_data | map('split', ' ') | map('first') | list }}"
         descriptions: "{{ ip_data | map('split', ' ') | map('last') | list }}"
 
-    - name: Voeg hosts toe aan AWX inventaris
-      awx.awx.inventory_host:
-        url: "{{ awx_url }}"
-        username: "{{ awx_username }}"
-        password: "{{ awx_password }}"
-        inventory: "{{ inventory_name }}"
-        host: "{{ item.0 }}"
-        description: "{{ item.1 }}"
-        state: present
+    - name: Voeg hosts toe aan AWX via de API
+      uri:
+        url: "http://185.107.90.120:31151/api/v2/hosts/"
+        method: POST
+        user: "admin"  # Pas aan naar je AWX gebruikersnaam
+        password: "FWd2tp79RoY8NMqAWhQUxffXF0RG65T4"  # Pas aan naar je AWX wachtwoord
+        body:
+          inventory: "Managed Plesk Servers"  # Naam van de inventaris
+          name: "{{ item.0 }}"  # IP adres
+          description: "{{ item.1 }}"  # Hostnaam
+        body_format: json
+        headers:
+          Content-Type: "application/json"
+        status_code: 201
       loop: "{{ hosts | zip(descriptions) | list }}"
