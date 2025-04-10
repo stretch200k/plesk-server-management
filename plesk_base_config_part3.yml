@@ -6,11 +6,11 @@
 
     # Set Plesk admin email
     - name: Set Plesk admin email
-      command: /usr/sbin/plesk --update -email support@rafikihosting.nl
+      command: /usr/sbin/plesk bin admin --set-email support@rafikihosting.nl
 
     # Set Plesk admin password
     - name: Set Plesk admin password
-      command: /usr/sbin/plesk --update -passwd 'Bilspleet21?'
+      command: /usr/sbin/plesk bin admin --set-password 'Bilspleet21?'
 
     # Register Plesk with paid license
     - name: Register Plesk with paid license
@@ -18,7 +18,7 @@
 
     # Change Plesk interface language to Dutch
     - name: Set Plesk language to Dutch
-      command: /usr/sbin/plesk --update -interface_locale nl_NL
+      command: /usr/sbin/plesk bin admin --set-interface-locale nl_NL
 
     # Optional: Set default locale for all users (future logins)
     - name: Set default locale for Plesk
