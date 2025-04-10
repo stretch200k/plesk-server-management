@@ -6,7 +6,7 @@
 
     # Set Plesk admin user name
     - name: Set Plesk admin name
-      command: /usr/local/psa/admin/bin/plesk --set-admin-name "Rafiki Hosting Operations"
+      command: /usr/local/psa/admin/bin/plesk --set-admin-name "RH Operations"
 
     # Set Plesk admin email
     - name: Set Plesk admin email
