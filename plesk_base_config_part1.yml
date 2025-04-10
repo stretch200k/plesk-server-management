@@ -21,10 +21,17 @@
         cache_valid_time: 3600
       when: ansible_os_family == "Debian"
 
-    # Install Plesk using one-click installer
+    # Check if Plesk is already installed
+    - name: Check if Plesk is installed
+      stat:
+        path: /usr/local/plesk/version
+      register: plesk_installed
+
+    # Install Plesk using one-click installer if not already installed
     - name: Install Plesk using one-click installer
       shell: |
         bash -c "$(curl -fsSL https://autoinstall.plesk.com/one-click-installer || wget -qO- https://autoinstall.plesk.com/one-click-installer)"
+      when: not plesk_installed.stat.exists
       args:
         creates: /usr/local/plesk/version
       tags: plesk
@@ -39,10 +46,9 @@
     # Set the default outgoing policy to allow
     - name: Set the default outgoing policy to allow
       ufw:
-        state: enabled
         default: allow
-        direction: out
-        policy: allow
+        direction: outgoing
+        state: enabled
 
     # Open necessary ports for services
     - name: Allow incoming connections to SSH (port 22)
