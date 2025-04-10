@@ -1,5 +1,5 @@
 - name: Voeg hosts toe aan AWX met IP als naam en hostnaam als omschrijving
-  hosts:all
+  hosts: all
   gather_facts: false
   vars:
     awx_url: "http://185.107.90.120:31151/api/v2"  # AWX API URL
