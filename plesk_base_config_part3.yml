@@ -4,26 +4,18 @@
   become: yes
   tasks:
 
-    # Set Plesk admin user name
-    - name: Set Plesk admin name
-      command: /usr/local/psa/admin/bin/plesk --set-admin-name "RH Operations"
-
-    # Set Plesk admin email
-    - name: Set Plesk admin email
-      command: /usr/local/psa/admin/bin/plesk --set-admin-email "support@rafikihosting.nl"
-
     # Set Plesk admin password
     - name: Set Plesk admin password
-      command: /usr/local/psa/admin/bin/plesk --set-admin-password "Bilspleet21?"
+      command: /usr/local/psa/bin/admin --set-password -passwd 'Bilspleet21?'
+
+    # Set Plesk admin name and email
+    - name: Set Plesk admin name and email
+      command: /usr/local/psa/bin/admin --update -name "RH Operations" -email "support@rafikihosting.nl"
 
     # Register Plesk with trial license
     - name: Register Plesk with trial license
-      command: /usr/local/psa/admin/bin/license -i https://autoinstall.plesk.com/get/plesk_trial_license
+      command: /usr/local/psa/bin/license --retrieve
 
-    # Change Plesk language to Dutch (nl)
+    # Set Plesk interface language to Dutch
     - name: Set Plesk language to Dutch
-      command: /usr/local/psa/admin/bin/plesk bin site --set-language nl
-
-    # Set default language to Dutch
-    - name: Set Plesk default language to Dutch
-      command: /usr/local/psa/admin/bin/plesk bin config --set lang nl
+      command: /usr/local/psa/bin/admin --update -interface_locale nl-NL
