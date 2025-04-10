@@ -1,6 +1,6 @@
 ---
 - name: Installeer node_exporter op Plesk-servers
-  hosts: plesk_servers
+  hosts: all
   become: yes
   vars:
     node_exporter_version: "1.8.1"
