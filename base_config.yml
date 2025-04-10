@@ -1,29 +1,30 @@
 ---
-- name: Configure servers with basic packages and UFW configuration
+- name: Base configuration for server setup
   hosts: all
   become: yes
+
   tasks:
 
-    # Install basic packages: apt, python, nano, etc.
-    - name: Install basic dependencies
+    # Installeren van basis pakketten en tools
+    - name: Install required packages for the server
       apt:
         name:
-          - apt-transport-https
-          - curl
-          - python3
-          - python3-pip
           - python3-apt
           - nano
+          - curl
+          - vim
+          - git
+          - unzip
+          - wget
         state: present
         update_cache: yes
 
-    # Install UFW if not already installed
-    - name: Install UFW (if not already installed)
+    - name: Install UFW if not already installed
       apt:
         name: ufw
         state: present
+        update_cache: yes
 
-    # Set default outgoing policy to allow
     - name: Set the default outgoing policy to allow
       ufw:
         state: enabled
@@ -31,7 +32,6 @@
         direction: out
         policy: allow
 
-    # Allow incoming connections to SSH (port 22)
     - name: Allow incoming connections to SSH (port 22)
       ufw:
         rule: allow
@@ -39,21 +39,18 @@
         proto: tcp
         port: 22
 
-    # Allow incoming connections to FTP (port 21)
     - name: Allow incoming connections to FTP (port 21)
       ufw:
         rule: allow
         proto: tcp
         port: 21
 
-    # Allow incoming connections to SMTP (port 25)
     - name: Allow incoming connections to SMTP (port 25)
       ufw:
         rule: allow
         proto: tcp
         port: 25
 
-    # Allow incoming connections to DNS (port 53)
     - name: Allow incoming connections to DNS (port 53)
       ufw:
         rule: allow
@@ -65,7 +62,6 @@
         proto: udp
         port: 53
 
-    # Allow incoming connections to HTTP (port 80)
     - name: Allow incoming connections to HTTP (port 80)
       ufw:
         rule: allow
@@ -73,28 +69,24 @@
         proto: tcp
         port: 80
 
-    # Allow incoming connections to POP3 (port 110)
     - name: Allow incoming connections to POP3 (port 110)
       ufw:
         rule: allow
         proto: tcp
         port: 110
 
-    # Allow incoming connections to Auth (port 113)
     - name: Allow incoming connections to Auth (port 113)
       ufw:
         rule: allow
         proto: tcp
         port: 113
 
-    # Allow incoming connections to IMAP (port 143)
     - name: Allow incoming connections to IMAP (port 143)
       ufw:
         rule: allow
         proto: tcp
         port: 143
 
-    # Allow incoming connections to HTTPS (port 443)
     - name: Allow incoming connections to HTTPS (port 443)
       ufw:
         rule: allow
@@ -102,77 +94,67 @@
         proto: tcp
         port: 443
 
-    # Allow incoming connections to SMTPS (port 465)
     - name: Allow incoming connections to SMTPS (port 465)
       ufw:
         rule: allow
         proto: tcp
         port: 465
 
-    # Allow incoming connections to Mail submission (port 587)
     - name: Allow incoming connections to Mail submission (port 587)
       ufw:
         rule: allow
         proto: tcp
         port: 587
 
-    # Allow incoming connections to FTPS (port 990)
     - name: Allow incoming connections to FTPS (port 990)
       ufw:
         rule: allow
         proto: tcp
         port: 990
 
-    # Allow incoming connections to IMAPS (port 993)
     - name: Allow incoming connections to IMAPS (port 993)
       ufw:
         rule: allow
         proto: tcp
         port: 993
 
-    # Allow incoming connections to POP3S (port 995)
     - name: Allow incoming connections to POP3S (port 995)
       ufw:
         rule: allow
         proto: tcp
         port: 995
 
-    # Allow incoming connections to MySQL (port 3306)
     - name: Allow incoming connections to MySQL (port 3306)
       ufw:
         rule: allow
         proto: tcp
         port: 3306
 
-    # Allow incoming connections to PostgreSQL (port 5432)
     - name: Allow incoming connections to PostgreSQL (port 5432)
       ufw:
         rule: allow
         proto: tcp
         port: 5432
 
-    # Allow incoming connections to Plesk HTTPS (port 8443)
     - name: Allow incoming connections to Plesk HTTPS (port 8443)
       ufw:
         rule: allow
         proto: tcp
         port: 8443
 
-    # Allow incoming connections to Autoinstaller (port 8447)
     - name: Allow incoming connections to Autoinstaller (port 8447)
       ufw:
         rule: allow
         proto: tcp
         port: 8447
 
-    # Allow incoming connections to Plesk HTTP (port 8880)
     - name: Allow incoming connections to Plesk HTTP (port 8880)
       ufw:
         rule: allow
         proto: tcp
         port: 8880
 
-    # **Grafana-specific ports**
+    # **Grafana-specific ports** (Grafana Web UI)
     - name: Allow incoming connections to Grafana (port 3000)
       ufw:
         rule: allow
@@ -186,13 +168,11 @@
         proto: tcp
         port: 9100
 
-    # Enable UFW to start on boot
     - name: Enable UFW to start on boot
       ufw:
         state: enabled
         logging: on
 
-    # Enable UFW
     - name: Enable UFW
       ufw:
         state: enabled
