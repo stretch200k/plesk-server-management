@@ -17,18 +17,17 @@
         hosts: "{{ ip_data | map('split', ' ') | map('first') | list }}"
         descriptions: "{{ ip_data | map('split', ' ') | map('last') | list }}"
 
-    - name: Voeg hosts toe aan AWX via de API
+    - name: Voeg hosts toe aan AWX via de API met API-token
       uri:
         url: "http://185.107.90.120:31151/api/v2/hosts/"
         method: POST
-        user: "admin"  # Pas aan naar je AWX gebruikersnaam
-        password: "FWd2tp79RoY8NMqAWhQUxffXF0RG65T4"  # Pas aan naar je AWX wachtwoord
+        headers:
+          Content-Type: "application/json"
+          Authorization: "Bearer MoWalW6XysmG6hWmVB1tWHM3HhWhkW"  # API-token vervangen
         body:
           inventory: "Managed Plesk Servers"  # Naam van de inventaris
           name: "{{ item.0 }}"  # IP adres
           description: "{{ item.1 }}"  # Hostnaam
         body_format: json
-        headers:
-          Content-Type: "application/json"
         status_code: 201
       loop: "{{ hosts | zip(descriptions) | list }}"
