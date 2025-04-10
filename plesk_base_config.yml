@@ -1,0 +1,188 @@
+---
+- name: Install basic configuration, Plesk, Grafana, Prometheus, and UFW
+  hosts: all
+  become: yes
+  tasks:
+
+    # Update package lists
+    - name: Update apt package cache
+      apt:
+        update_cache: yes
+      tags: update
+
+    # Install basic utilities
+    - name: Install basic packages
+      apt:
+        name:
+          - python3
+          - python3-apt
+          - python3-pip
+          - nano
+          - curl
+          - wget
+          - unzip
+          - lsb-release
+        state: present
+      tags: basic-packages
+
+    # Install dependencies for Grafana and Prometheus
+    - name: Install Grafana dependencies
+      apt:
+        name:
+          - software-properties-common
+          - apt-transport-https
+        state: present
+      tags: grafana-dependencies
+
+    # Add the Grafana repository and install Grafana
+    - name: Add Grafana APT repository
+      apt_repository:
+        repo: "deb https://packages.grafana.com/oss/deb stable main"
+        state: present
+      tags: grafana
+
+    - name: Install Grafana
+      apt:
+        name: grafana
+        state: present
+      tags: grafana
+
+    # Install Prometheus (Manual installation)
+    - name: Download Prometheus
+      get_url:
+        url: "https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz"
+        dest: "/tmp/prometheus-2.52.0.linux-amd64.tar.gz"
+      tags: prometheus
+
+    - name: Extract Prometheus
+      unarchive:
+        src: "/tmp/prometheus-2.52.0.linux-amd64.tar.gz"
+        dest: "/opt"
+        remote_src: yes
+      tags: prometheus
+
+    - name: Create a symbolic link for Prometheus binary
+      command: ln -s /opt/prometheus-2.52.0.linux-amd64/prometheus /usr/local/bin/prometheus
+      tags: prometheus
+
+    - name: Create systemd service file for Prometheus
+      copy:
+        dest: /etc/systemd/system/prometheus.service
+        content: |
+          [Unit]
+          Description=Prometheus
+          After=network.target
+
+          [Service]
+          ExecStart=/usr/local/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/var/lib/prometheus
+
+          [Install]
+          WantedBy=multi-user.target
+      tags: prometheus
+
+    # Install Plesk (Use official Plesk installation script)
+    - name: Download Plesk installer
+      get_url:
+        url: "https://autoinstall.plesk.com/plesk-installer"
+        dest: "/tmp/plesk-installer"
+        mode: '0755'
+      tags: plesk
+
+    - name: Install Plesk
+      command: "/tmp/plesk-installer --install-component panel"
+      tags: plesk
+
+    # Configure UFW for default policies and open required ports
+    - name: Set the default outgoing policy to allow
+      ufw:
+        state: enabled
+        default: allow
+        direction: out
+        policy: allow
+      tags: ufw
+
+    - name: Allow incoming connections to SSH (port 22)
+      ufw:
+        rule: allow
+        name: OpenSSH
+        proto: tcp
+        port: 22
+      tags: ufw
+
+    - name: Allow incoming connections to HTTP (port 80)
+      ufw:
+        rule: allow
+        name: 'http'
+        proto: tcp
+        port: 80
+      tags: ufw
+
+    - name: Allow incoming connections to HTTPS (port 443)
+      ufw:
+        rule: allow
+        name: 'https'
+        proto: tcp
+        port: 443
+      tags: ufw
+
+    - name: Allow incoming connections to Grafana (port 3000)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 3000
+      tags: ufw
+
+    - name: Allow incoming connections to node_exporter (port 9100)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 9100
+      tags: ufw
+
+    - name: Allow incoming connections to Plesk (port 8443)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 8443
+      tags: ufw
+
+    - name: Allow incoming connections to Autoinstaller (port 8447)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 8447
+      tags: ufw
+
+    - name: Allow incoming connections to Plesk HTTP (port 8880)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 8880
+      tags: ufw
+
+    - name: Enable UFW to start on boot
+      ufw:
+        state: enabled
+        logging: on
+      tags: ufw
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
+      tags: ufw
+
+    # Start services
+    - name: Start and enable Grafana
+      systemd:
+        name: grafana-server
+        state: started
+        enabled: yes
+      tags: grafana
+
+    - name: Start and enable Prometheus
+      systemd:
+        name: prometheus
+        state: started
+        enabled: yes
+      tags: prometheus
+
