@@ -4,16 +4,12 @@
   become: yes
   tasks:
 
-    # Install Plesk first
-    - name: Download Plesk installer
-      get_url:
-        url: "https://autoinstall.plesk.com/plesk-installer"
-        dest: "/tmp/plesk-installer"
-        mode: '0755'
-      tags: plesk
-
-    - name: Install Plesk
-      command: "/tmp/plesk-installer --install-component panel"
+    # Install Plesk first (using curl or wget for one-click installer)
+    - name: Install Plesk using one-click installer
+      shell: |
+        sh <(curl https://autoinstall.plesk.com/one-click-installer || wget -O - https://autoinstall.plesk.com/one-click-installer)
+      args:
+        creates: /usr/local/plesk/version
       tags: plesk
 
     # Update apt package cache (necessary for following packages)
@@ -156,30 +152,4 @@
         rule: allow
         proto: tcp
         port: 8880
-      tags: ufw
 
-    - name: Enable UFW to start on boot
-      ufw:
-        state: enabled
-        logging: on
-      tags: ufw
-
-    - name: Enable UFW
-      ufw:
-        state: enabled
-      tags: ufw
-
-    # Start services
-    - name: Start and enable Grafana
-      systemd:
-        name: grafana-server
-        state: started
-        enabled: yes
-      tags: grafana
-
-    - name: Start and enable Prometheus
-      systemd:
-        name: prometheus
-        state: started
-        enabled: yes
-      tags: prometheus
