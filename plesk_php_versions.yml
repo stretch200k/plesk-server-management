@@ -7,8 +7,6 @@
     - name: Installeer PHP-versies via Plesk CLI
       shell: |
         plesk installer add --components php{{ item }}
-      args:
-        warn: false
       loop:
         - 8.4
         - 8.3
@@ -21,8 +19,6 @@
         - 7.1
         - 7.0
 
-    - name: Zorg dat PHP van OS-leverancier actief is
+    - name: Activeer PHP van OS-leverancier in Plesk
       shell: |
         plesk bin php_handler --enable -id "$(plesk bin php_handler --list | grep 'os' | awk '{print $1}')"
-      args:
-        warn: false
