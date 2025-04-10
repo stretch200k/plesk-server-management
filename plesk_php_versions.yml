@@ -1,10 +1,10 @@
 ---
-- name: Installeer en activeer gewenste PHP-versies in Plesk
+- name: Installeer en activeer PHP-versies in Plesk
   hosts: all
   become: yes
 
   tasks:
-    - name: Installeer PHP-versies via Plesk CLI
+    - name: Installeer PHP-versies via Plesk Installer
       shell: |
         plesk installer add --components php{{ item }}
       loop:
@@ -19,4 +19,12 @@
         - 7.1
         - 7.0
 
- 
+    - name: Haal lijst op van beschikbare PHP handlers
+      shell: plesk bin php_handler --list
+      register: php_handlers_output
+
+    - name: Activeer PHP-versies als ze geïnstalleerd zijn maar niet actief
+      shell: |
+        plesk bin php_handler --enable -id {{ item }}
+      loop: "{{ php_handlers_output.stdout_lines | select('search', 'php[0-9]') | map('split') | map('first') | list }}"
+      when: "'{{ item }}' not in php_handlers_output.stdout"
