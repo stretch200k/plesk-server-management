@@ -1,5 +1,5 @@
 ---
-- name: Configure UFW firewall for all standard ports and services
+- name: Configure UFW firewall for all standard ports and services, including Grafana
   hosts: all
   become: yes
   tasks:
@@ -144,6 +144,20 @@
         rule: allow
         proto: tcp
         port: 8880
+
+    # **Grafana-specific ports** (Grafana Web UI)
+    - name: Allow incoming connections to Grafana (port 3000)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 3000
+
+    # **Prometheus node_exporter port**
+    - name: Allow incoming connections to node_exporter (port 9100)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 9100
 
     - name: Enable UFW to start on boot
       ufw:
