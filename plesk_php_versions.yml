@@ -8,10 +8,6 @@
       register: php_handlers_output
       changed_when: false
 
-    - name: Toon actieve/inactieve PHP-handlers
-      debug:
-        msg: "{{ php_handlers_output.stdout_lines }}"
-
     - name: Definieer gewenste PHP-versies
       set_fact:
         php_versions:
@@ -26,14 +22,11 @@
           - "8.3"
           - "8.4"
 
-    - name: Controleer welke versies geïnstalleerd zijn maar niet actief
-      set_fact:
-        inactive_php_versions: "{{ php_versions | selectattr('item', 'search', 'plesk-php' + item) | list }}"
-
-    - name: Activeer PHP-versies die geïnstalleerd zijn maar nog niet actief
+    - name: Activeer alle gewenste PHP-versies in Plesk
       shell: |
-        plesk bin php_handler --enable -id "$(plesk bin php_handler --list | grep 'plesk-php{{ item }}' | awk '{print $1}')"
-      with_items: "{{ php_versions }}"
+        plesk bin php_handler --enable -id plesk-php{{ item }}
+      loop: "{{ php_versions }}"
+      when: "'plesk-php{{ item }}' not in php_handlers_output.stdout"
       register: enable_php_handlers
       ignore_errors: true
 
