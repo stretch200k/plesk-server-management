@@ -16,9 +16,9 @@
     - name: Register Plesk with paid license
       command: /usr/sbin/plesk bin license --install "A00T00-GDEM10-QH3S91-E74V71-M8BN39"
 
-    # Change Plesk interface language to Dutch
+    # Set Plesk language to Dutch
     - name: Set Plesk language to Dutch
-      command: /usr/local/psa/bin/admin --update -interface_locale nl_NL
+      command: /usr/local/psa/bin/admin --set-locale nl_NL
 
     # Optional: Set default locale for all users (future logins)
     - name: Set default locale for Plesk
