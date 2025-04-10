@@ -21,21 +21,6 @@
         cache_valid_time: 3600
       when: ansible_os_family == "Debian"
 
-    # Check if Plesk is already installed
-    - name: Check if Plesk is installed
-      stat:
-        path: /usr/local/plesk/version
-      register: plesk_installed
-
-    # Install Plesk using one-click installer if not already installed
-    - name: Install Plesk using one-click installer
-      shell: |
-        bash -c "$(curl -fsSL https://autoinstall.plesk.com/one-click-installer || wget -qO- https://autoinstall.plesk.com/one-click-installer)"
-      when: not plesk_installed.stat.exists
-      args:
-        creates: /usr/local/plesk/version
-      tags: plesk
-
     # Ensure UFW is installed (if not already)
     - name: Install UFW (if not already installed)
       apt:
@@ -197,3 +182,18 @@
     - name: Enable UFW
       ufw:
         state: enabled
+
+    # Check if Plesk is already installed
+    - name: Check if Plesk is installed
+      stat:
+        path: /usr/local/plesk/version
+      register: plesk_installed
+
+    # Install Plesk using one-click installer if not already installed
+    - name: Install Plesk using one-click installer
+      shell: |
+        bash -c "$(curl -fsSL https://autoinstall.plesk.com/one-click-installer || wget -qO- https://autoinstall.plesk.com/one-click-installer)"
+      when: not plesk_installed.stat.exists
+      args:
+        creates: /usr/local/plesk/version
+      tags: plesk
