@@ -14,7 +14,7 @@
 
     # Register Plesk with trial license
     - name: Register Plesk with trial license
-      command: /usr/local/psa/bin/plesk bin license -i https://autoinstall.plesk.com/get/plesk_trial_license
+      command: /usr/local/psa/bin/plesk installer --register-trial
 
     # Change Plesk interface language to Dutch
     - name: Set Plesk language to Dutch
