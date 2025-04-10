@@ -19,6 +19,4 @@
         - 7.1
         - 7.0
 
-    - name: Activeer PHP van OS-leverancier in Plesk
-      shell: |
-        plesk bin php_handler --enable -id "$(plesk bin php_handler --list | grep 'os' | awk '{print $1}')"
+ 
