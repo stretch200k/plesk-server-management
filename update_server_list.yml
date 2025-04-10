@@ -40,16 +40,4 @@
           Content-Type: "application/json"
           Authorization: "Bearer MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
         body:
-          inventory: "2"  # Gebruik hier de ID van de juiste inventaris (Managed Plesk Servers)
-          name: "{{ item.0 }}"  # IP adres
-          description: "{{ item.1 }}"  # Hostnaam
-        body_format: json
-        status_code: 201
-      loop: "{{ hosts | zip(descriptions) | list }}"
-      when: "'{{ item.0 }}' not in existing_ips"  # Controleer of het IP adres al voorkomt in de lijst van bestaande IP's
-
-    - name: Output dat de host al bestaat
-      debug:
-        msg: "Host {{ item.0 }} met naam {{ item.1 }} bestaat al in de inventaris"
-      loop: "{{ hosts | zip(descriptions) | list }}"
-      when: "'{{ item.0 }}' in existing_ips"  # Output als de host al bestaat
+          inventory: "2"  #
