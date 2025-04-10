@@ -1,30 +1,38 @@
 ---
-- name: Installeer en activeer PHP-versies in Plesk
+- name: Activeer meerdere PHP-versies in Plesk
   hosts: all
-  become: yes
-
+  become: true
   tasks:
-    - name: Installeer PHP-versies via Plesk Installer
-      shell: |
-        plesk installer add --components php{{ item }}
-      loop:
-        - 8.4
-        - 8.3
-        - 8.2
-        - 8.1
-        - 8.0
-        - 7.4
-        - 7.3
-        - 7.2
-        - 7.1
-        - 7.0
-
-    - name: Haal lijst op van beschikbare PHP handlers
+    - name: Haal huidige PHP-handlers op
       shell: plesk bin php_handler --list
       register: php_handlers_output
 
-    - name: Activeer PHP-versies als ze geïnstalleerd zijn maar niet actief
+    - name: Toon actieve/inactieve PHP-handlers
+      debug:
+        var: php_handlers_output.stdout_lines
+
+    - name: Definieer gewenste PHP-versies
+      set_fact:
+        php_versions:
+          - 8.4
+          - 8.3
+          - 8.2
+          - 8.1
+          - 8.0
+          - 7.4
+          - 7.3
+          - 7.2
+          - 7.1
+          - 7.0
+
+    - name: Activeer PHP-versies als ze zijn geïnstalleerd maar nog niet actief
       shell: |
-        plesk bin php_handler --enable -id {{ item }}
-      loop: "{{ php_handlers_output.stdout_lines | select('search', 'php[0-9]') | map('split') | map('first') | list }}"
-      when: "'{{ item }}' not in php_handlers_output.stdout"
+        handler_id=$(plesk bin php_handler --list | grep "php{{ item }}" | awk '{print $1}')
+        if [ -n "$handler_id" ]; then
+          plesk bin php_handler --enable -id "$handler_id"
+        fi
+      loop: "{{ php_versions }}"
+      when: >
+        php_handlers_output.stdout is search("php" ~ item ~ " ")
+        and
+        php_handlers_output.stdout is search("php" ~ item ~ " off")
