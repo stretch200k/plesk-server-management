@@ -10,7 +10,7 @@
 
     - name: Zet de inhoud van het bestand om naar tekst
       set_fact:
-        ip_data: "{{ file_content.content | b64decode | splitlines() }}"
+        ip_data: "{{ file_content.content | b64decode | to_nice_yaml | split('\n') }}"  # Gebruik split() na b64decode
 
     - name: Parseer de IP-adressen en hostnamen
       set_fact:
