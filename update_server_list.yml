@@ -10,7 +10,7 @@
 
     - name: Zet de inhoud van het bestand om naar tekst
       set_fact:
-        hostname_data: "{{ file_content.content | b64decode | splitlines() }}"  # Gebruik splitlines() om de tekst in regels te splitsen
+        hostname_data: "{{ file_content.content | b64decode | split('\n') }}"  # Gebruik split('\n') om de tekst in regels te splitsen
 
     - name: Parseer de hostnamen
       set_fact:
