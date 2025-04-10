@@ -8,9 +8,7 @@
     - name: Set Plesk admin email
       command: /usr/local/psa/bin/admin --update -email support@rafikihosting.nl
 
-    # Set Plesk admin password
-    - name: Set Plesk admin password
-      command: /usr/local/psa/bin/admin --update -passwd 'Bilspleet21?'
+
 
     # Register Plesk with paid license
     - name: Register Plesk with paid license
