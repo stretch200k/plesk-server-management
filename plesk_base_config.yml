@@ -4,13 +4,13 @@
   become: yes
   tasks:
 
-    # Install Plesk first (using curl or wget for one-click installer)
     - name: Install Plesk using one-click installer
-      shell: |
-        sh <(curl https://autoinstall.plesk.com/one-click-installer || wget -O - https://autoinstall.plesk.com/one-click-installer)
-      args:
-        creates: /usr/local/plesk/version
-      tags: plesk
+  shell: |
+    bash -c "$(curl -fsSL https://autoinstall.plesk.com/one-click-installer || wget -qO- https://autoinstall.plesk.com/one-click-installer)"
+  args:
+    creates: /usr/local/plesk/version
+  tags: plesk
+
 
     # Update apt package cache (necessary for following packages)
     - name: Update apt package cache
