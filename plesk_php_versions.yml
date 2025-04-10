@@ -1,56 +1,53 @@
 ---
-- name: Activeer meerdere PHP-versies in Plesk
-  hosts: all
+- name: Activeer en installeer gewenste PHP-versies in Plesk (7.4 en hoger)
+  hosts: plesk_servers
   become: yes
   tasks:
-    - name: Haal huidige PHP-handlers op
+    - name: Haal lijst van geïnstalleerde PHP-versies op
       command: plesk bin php_handler --list
       register: php_handlers_output
-      changed_when: false
 
-    - name: Definieer gewenste PHP-versies
-      set_fact:
-        php_versions:
-          - "7.4"
-          - "8.0"
-          - "8.1"
-          - "8.2"
-          - "8.3"
-          - "8.4"
-
-    - name: Controleer welke PHP-versies geïnstalleerd zijn
-      set_fact:
-        installed_php_versions: "{{ php_handlers_output.stdout | select('search', 'plesk-php') | map('regex_replace', '^plesk-php(\\d+\\.\\d+).*', '\\1') | list }}"
-
-    - name: Installeer ontbrekende PHP-versies
-      shell: |
-        plesk installer --select-release-id Plesk_18_0_41 --install-component php{{ item }}
-      loop: "{{ php_versions }}"
-      when: item not in installed_php_versions
-      register: install_php_versions
-      ignore_errors: true
+    - name: Installeer PHP 8.4 als deze nog niet geïnstalleerd is
+      command: plesk installer --install-component php8.4
+      when: "'plesk-php8.4' not in php_handlers_output.stdout"
       notify:
-        - Herlaad Plesk
+        - Herstart Plesk
 
-    - name: Activeer de beschikbare PHP-versies
-      shell: |
-        plesk bin php_handler --enable -id plesk-php{{ item }}
-      loop: "{{ php_versions }}"
-      when: item in installed_php_versions
-      register: enable_php_handlers
-      ignore_errors: true
+    - name: Installeer PHP 8.3 als deze nog niet geïnstalleerd is
+      command: plesk installer --install-component php8.3
+      when: "'plesk-php8.3' not in php_handlers_output.stdout"
+      notify:
+        - Herstart Plesk
 
-    - name: Verifieer of PHP-handlers ingeschakeld zijn
-      command: plesk bin php_handler --list
-      register: verify_php_handlers
-      changed_when: false
+    - name: Installeer PHP 8.2 als deze nog niet geïnstalleerd is
+      command: plesk installer --install-component php8.2
+      when: "'plesk-php8.2' not in php_handlers_output.stdout"
+      notify:
+        - Herstart Plesk
 
-    - name: Toon de lijst van ingeschakelde PHP-versies
-      debug:
-        msg: "{{ verify_php_handlers.stdout_lines }}"
+    - name: Installeer PHP 8.1 als deze nog niet geïnstalleerd is
+      command: plesk installer --install-component php8.1
+      when: "'plesk-php8.1' not in php_handlers_output.stdout"
+      notify:
+        - Herstart Plesk
 
-  handlers:
-    - name: Herlaad Plesk
+    - name: Installeer PHP 7.4 als deze nog niet geïnstalleerd is
+      command: plesk installer --install-component php7.4
+      when: "'plesk-php7.4' not in php_handlers_output.stdout"
+      notify:
+        - Herstart Plesk
+
+    - name: Activeer de gewenste PHP-versies in Plesk
+      command: plesk bin php_handler --enable -id plesk-php{{ item }}
+      with_items:
+        - 8.4
+        - 8.3
+        - 8.2
+        - 8.1
+        - 7.4
+      when: "'plesk-php{{ item }}' in php_handlers_output.stdout"
+
+    - name: Herstart Plesk
       service:
-        name: plesk
-        state: reloaded
+        name: psa
+        state: restarted
