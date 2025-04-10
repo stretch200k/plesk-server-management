@@ -42,7 +42,7 @@
         body: "{{ {'inventory': 2, 'name': item.0, 'description': item.1} | to_json }}"  # Convert naar JSON-string
         body_format: json
         status_code: 201
-      loop: "{{ hosts | zip(descriptions) | list }}"
+      loop: "{{ hosts | zip(descriptions) | selectattr('0', 'defined') | selectattr('1', 'defined') | selectattr('0', '!=', '') | selectattr('1', '!=', '') | selectattr('0', 'search', '^\d+\.\d+\.\d+\.\d+$') | list }}"  # Filter lege waarden en ongeldige IP's
       when: 
         - item.0 not in existing_ips  # Controleer of het IP adres al voorkomt in de lijst van bestaande IP's
 
