@@ -28,12 +28,12 @@
 
     - name: Controleer welke versies geïnstalleerd zijn maar niet actief
       set_fact:
-        inactive_php_versions: "{{ php_versions | selectattr('item', 'search', 'plesk-php{{ item }}') | list }}"
+        inactive_php_versions: "{{ php_versions | selectattr('item', 'search', 'plesk-php' + item) | list }}"
 
     - name: Activeer PHP-versies die geïnstalleerd zijn maar nog niet actief
       shell: |
         plesk bin php_handler --enable -id "$(plesk bin php_handler --list | grep 'plesk-php{{ item }}' | awk '{print $1}')"
-      with_items: "{{ inactive_php_versions }}"
+      with_items: "{{ php_versions }}"
       register: enable_php_handlers
       ignore_errors: true
 
