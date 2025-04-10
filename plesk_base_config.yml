@@ -1,107 +1,80 @@
 ---
-- name: Install Plesk first, then Grafana, Prometheus and configure UFW
+- name: Install Plesk and configure system
   hosts: all
   become: yes
   tasks:
 
-    - name: Install Plesk using one-click installer
-  shell: |
-    bash -c "$(curl -fsSL https://autoinstall.plesk.com/one-click-installer || wget -qO- https://autoinstall.plesk.com/one-click-installer)"
-  args:
-    creates: /usr/local/plesk/version
-  tags: plesk
-
+    # Install dependencies
+    - name: Install curl, wget, and bash
+      apt:
+        name:
+          - curl
+          - wget
+          - bash
+        state: present
+      when: ansible_os_family == "Debian"
 
     # Update apt package cache (necessary for following packages)
     - name: Update apt package cache
       apt:
         update_cache: yes
-      tags: update
+        cache_valid_time: 3600
+      when: ansible_os_family == "Debian"
 
-    # Install basic packages (python, nano, etc.)
-    - name: Install basic packages
+    # Install Plesk using one-click installer
+    - name: Install Plesk using one-click installer
+      shell: |
+        bash -c "$(curl -fsSL https://autoinstall.plesk.com/one-click-installer || wget -qO- https://autoinstall.plesk.com/one-click-installer)"
+      args:
+        creates: /usr/local/plesk/version
+      tags: plesk
+
+    # Ensure UFW is installed (if not already)
+    - name: Install UFW (if not already installed)
       apt:
-        name:
-          - python3
-          - python3-apt
-          - python3-pip
-          - nano
-          - curl
-          - wget
-          - unzip
-          - lsb-release
+        name: ufw
         state: present
-      tags: basic-packages
+      when: ansible_os_family == "Debian"
 
-    # Install dependencies for Grafana (and add GPG key for Grafana)
-    - name: Add Grafana GPG key
-      apt_key:
-        url: "https://packages.grafana.com/gpg.key"
-        state: present
-      tags: grafana-dependencies
-
-    - name: Add Grafana APT repository
-      apt_repository:
-        repo: "deb https://packages.grafana.com/oss/deb stable main"
-        state: present
-      tags: grafana
-
-    # Install Grafana
-    - name: Install Grafana
-      apt:
-        name: grafana
-        state: present
-      tags: grafana
-
-    # Install Prometheus (Manual installation)
-    - name: Download Prometheus
-      get_url:
-        url: "https://github.com/prometheus/prometheus/releases/download/v2.52.0/prometheus-2.52.0.linux-amd64.tar.gz"
-        dest: "/tmp/prometheus-2.52.0.linux-amd64.tar.gz"
-      tags: prometheus
-
-    - name: Extract Prometheus
-      unarchive:
-        src: "/tmp/prometheus-2.52.0.linux-amd64.tar.gz"
-        dest: "/opt"
-        remote_src: yes
-      tags: prometheus
-
-    - name: Create a symbolic link for Prometheus binary
-      command: ln -s /opt/prometheus-2.52.0.linux-amd64/prometheus /usr/local/bin/prometheus
-      tags: prometheus
-
-    - name: Create systemd service file for Prometheus
-      copy:
-        dest: /etc/systemd/system/prometheus.service
-        content: |
-          [Unit]
-          Description=Prometheus
-          After=network.target
-
-          [Service]
-          ExecStart=/usr/local/bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/var/lib/prometheus
-
-          [Install]
-          WantedBy=multi-user.target
-      tags: prometheus
-
-    # Configure UFW for default policies and open required ports
+    # Set the default outgoing policy to allow
     - name: Set the default outgoing policy to allow
       ufw:
         state: enabled
         default: allow
         direction: out
         policy: allow
-      tags: ufw
 
+    # Open necessary ports for services
     - name: Allow incoming connections to SSH (port 22)
       ufw:
         rule: allow
         name: OpenSSH
         proto: tcp
         port: 22
-      tags: ufw
+
+    - name: Allow incoming connections to FTP (port 21)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 21
+
+    - name: Allow incoming connections to SMTP (port 25)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 25
+
+    - name: Allow incoming connections to DNS (port 53)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 53
+
+    - name: Allow incoming connections to DNS (port 53 UDP)
+      ufw:
+        rule: allow
+        proto: udp
+        port: 53
 
     - name: Allow incoming connections to HTTP (port 80)
       ufw:
@@ -109,7 +82,24 @@
         name: 'http'
         proto: tcp
         port: 80
-      tags: ufw
+
+    - name: Allow incoming connections to POP3 (port 110)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 110
+
+    - name: Allow incoming connections to Auth (port 113)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 113
+
+    - name: Allow incoming connections to IMAP (port 143)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 143
 
     - name: Allow incoming connections to HTTPS (port 443)
       ufw:
@@ -117,35 +107,60 @@
         name: 'https'
         proto: tcp
         port: 443
-      tags: ufw
 
-    - name: Allow incoming connections to Grafana (port 3000)
+    - name: Allow incoming connections to SMTPS (port 465)
       ufw:
         rule: allow
         proto: tcp
-        port: 3000
-      tags: ufw
+        port: 465
 
-    - name: Allow incoming connections to node_exporter (port 9100)
+    - name: Allow incoming connections to Mail submission (port 587)
       ufw:
         rule: allow
         proto: tcp
-        port: 9100
-      tags: ufw
+        port: 587
 
-    - name: Allow incoming connections to Plesk (port 8443)
+    - name: Allow incoming connections to FTPS (port 990)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 990
+
+    - name: Allow incoming connections to IMAPS (port 993)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 993
+
+    - name: Allow incoming connections to POP3S (port 995)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 995
+
+    - name: Allow incoming connections to MySQL (port 3306)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 3306
+
+    - name: Allow incoming connections to PostgreSQL (port 5432)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 5432
+
+    - name: Allow incoming connections to Plesk HTTPS (port 8443)
       ufw:
         rule: allow
         proto: tcp
         port: 8443
-      tags: ufw
 
     - name: Allow incoming connections to Autoinstaller (port 8447)
       ufw:
         rule: allow
         proto: tcp
         port: 8447
-      tags: ufw
 
     - name: Allow incoming connections to Plesk HTTP (port 8880)
       ufw:
@@ -153,3 +168,26 @@
         proto: tcp
         port: 8880
 
+    # Grafana-specific ports (Grafana Web UI)
+    - name: Allow incoming connections to Grafana (port 3000)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 3000
+
+    # Prometheus node_exporter port
+    - name: Allow incoming connections to node_exporter (port 9100)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 9100
+
+    # Enable UFW to start on boot
+    - name: Enable UFW to start on boot
+      ufw:
+        state: enabled
+        logging: on
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
