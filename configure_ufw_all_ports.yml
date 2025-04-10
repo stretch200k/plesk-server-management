@@ -1,0 +1,155 @@
+---
+- name: Configure UFW firewall for all standard ports and services
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install UFW (if not already installed)
+      apt:
+        name: ufw
+        state: present
+        update_cache: yes
+
+    - name: Set default policies to deny incoming and allow outgoing connections
+      ufw:
+        state: enabled
+        default: deny
+        direction: in
+        policy: deny
+
+    - name: Set the default outgoing policy to allow
+      ufw:
+        state: enabled
+        default: allow
+        direction: out
+        policy: allow
+
+    - name: Allow incoming connections to SSH (port 22)
+      ufw:
+        rule: allow
+        name: OpenSSH
+        proto: tcp
+        port: 22
+
+    - name: Allow incoming connections to FTP (port 21)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 21
+
+    - name: Allow incoming connections to SMTP (port 25)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 25
+
+    - name: Allow incoming connections to DNS (port 53)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 53
+    - name: Allow incoming connections to DNS (port 53 UDP)
+      ufw:
+        rule: allow
+        proto: udp
+        port: 53
+
+    - name: Allow incoming connections to HTTP (port 80)
+      ufw:
+        rule: allow
+        name: 'http'
+        proto: tcp
+        port: 80
+
+    - name: Allow incoming connections to POP3 (port 110)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 110
+
+    - name: Allow incoming connections to Auth (port 113)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 113
+
+    - name: Allow incoming connections to IMAP (port 143)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 143
+
+    - name: Allow incoming connections to HTTPS (port 443)
+      ufw:
+        rule: allow
+        name: 'https'
+        proto: tcp
+        port: 443
+
+    - name: Allow incoming connections to SMTPS (port 465)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 465
+
+    - name: Allow incoming connections to Mail submission (port 587)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 587
+
+    - name: Allow incoming connections to FTPS (port 990)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 990
+
+    - name: Allow incoming connections to IMAPS (port 993)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 993
+
+    - name: Allow incoming connections to POP3S (port 995)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 995
+
+    - name: Allow incoming connections to MySQL (port 3306)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 3306
+
+    - name: Allow incoming connections to PostgreSQL (port 5432)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 5432
+
+    - name: Allow incoming connections to Plesk HTTPS (port 8443)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 8443
+
+    - name: Allow incoming connections to Autoinstaller (port 8447)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 8447
+
+    - name: Allow incoming connections to Plesk HTTP (port 8880)
+      ufw:
+        rule: allow
+        proto: tcp
+        port: 8880
+
+    - name: Enable UFW to start on boot
+      ufw:
+        state: enabled
+        logging: on
+
+    - name: Enable UFW
+      ufw:
+        state: enabled
