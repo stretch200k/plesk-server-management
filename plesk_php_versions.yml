@@ -1,52 +1,37 @@
----
 - name: Activeer en installeer gewenste PHP-versies in Plesk (7.4 en hoger)
   hosts: all
   become: yes
   tasks:
-    - name: Haal lijst van geïnstalleerde PHP-versies op
+    - name: Controleer welke PHP-versies al geïnstalleerd zijn
       command: plesk bin php_handler --list
       register: php_handlers_output
+      changed_when: false
 
-    - name: Installeer PHP 8.4 als deze nog niet geïnstalleerd is
-      command: plesk installer --install-component php8.4
-      when: "'plesk-php8.4' not in php_handlers_output.stdout"
+    - name: Installeer gewenste PHP-versies (7.4, 8.0, 8.1, 8.2, 8.3, 8.4)
+      command: plesk installer --install-component php{{ item }}
+      with_items:
+        - 7.4
+        - 8.0
+        - 8.1
+        - 8.2
+        - 8.3
+        - 8.4
+      when: "'php{{ item }}' not in php_handlers_output.stdout"
       notify:
         - Herstart Plesk
 
-    - name: Installeer PHP 8.3 als deze nog niet geïnstalleerd is
-      command: plesk installer --install-component php8.3
-      when: "'plesk-php8.3' not in php_handlers_output.stdout"
-      notify:
-        - Herstart Plesk
-
-    - name: Installeer PHP 8.2 als deze nog niet geïnstalleerd is
-      command: plesk installer --install-component php8.2
-      when: "'plesk-php8.2' not in php_handlers_output.stdout"
-      notify:
-        - Herstart Plesk
-
-    - name: Installeer PHP 8.1 als deze nog niet geïnstalleerd is
-      command: plesk installer --install-component php8.1
-      when: "'plesk-php8.1' not in php_handlers_output.stdout"
-      notify:
-        - Herstart Plesk
-
-    - name: Installeer PHP 7.4 als deze nog niet geïnstalleerd is
-      command: plesk installer --install-component php7.4
-      when: "'plesk-php7.4' not in php_handlers_output.stdout"
-      notify:
-        - Herstart Plesk
-
-    - name: Activeer de gewenste PHP-versies in Plesk
+    - name: Activeer de gewenste PHP-versies
       command: plesk bin php_handler --enable -id plesk-php{{ item }}
       with_items:
-        - 8.4
-        - 8.3
-        - 8.2
-        - 8.1
         - 7.4
-      when: "'plesk-php{{ item }}' in php_handlers_output.stdout"
+        - 8.0
+        - 8.1
+        - 8.2
+        - 8.3
+        - 8.4
+      when: "'plesk-php{{ item }}' not in php_handlers_output.stdout"
 
+  handlers:
     - name: Herstart Plesk
       service:
         name: psa
