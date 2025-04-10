@@ -1,20 +1,20 @@
 ---
-- name: Voeg hosts toe aan AWX met hostname als naam en beschrijving
+- name: Voeg hosts toe aan AWX met IP als naam en hostname als omschrijving
   hosts: all
   gather_facts: false
   tasks:
-    - name: Haal de lijst van hostnamen op uit bestand
+    - name: Haal de lijst van hostnamen en IP-adressen op uit bestand
       slurp:
         src: "/var/www/vhosts/rafikihosting.nl/httpdocs/serverlijst.txt"  # Pas dit pad aan indien nodig
       register: file_content
 
     - name: Zet de inhoud van het bestand om naar tekst
       set_fact:
-        hostname_data: "{{ file_content.content | b64decode | split('\n') }}"  # Gebruik split('\n') om de tekst in regels te splitsen
+        ip_data: "{{ file_content.content | b64decode | split('\n') }}"  # Gebruik split('\n') om de tekst in regels te splitsen
 
-    - name: Parseer de hostnamen
+    - name: Parseer de IP-adressen en hostnamen
       set_fact:
-        hostnames: "{{ hostname_data | map('trim') | selectattr('0', '!=', '') | list }}"  # Filter lege regels
+        hosts_ips: "{{ ip_data | map('split', ' ') | selectattr('0', '!=', '') | selectattr('1', '!=', '') | list }}"  # Maak een lijst van [IP, hostname]
 
     - name: Haal de bestaande hosts op uit de AWX-inventaris
       uri:
@@ -27,9 +27,9 @@
       register: response
       changed_when: false
 
-    - name: Maak lijst van bestaande hostnamen in AWX
+    - name: Maak lijst van bestaande IP-adressen in AWX
       set_fact:
-        existing_hosts: "{{ response.json.results | map(attribute='name') | list }}"
+        existing_ips: "{{ response.json.results | map(attribute='name') | list }}"
 
     - name: Voeg nieuwe hosts toe aan AWX via de API
       uri:
@@ -38,16 +38,16 @@
         headers:
           Content-Type: "application/json"
           Authorization: "Bearer MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
-        body: "{{ {'inventory': 2, 'name': item, 'description': item} | to_json }}"  # Gebruik hostname als naam en beschrijving
+        body: "{{ {'inventory': 2, 'name': item.0, 'description': item.1} | to_json }}"  # Gebruik IP als naam en hostname als beschrijving
         body_format: json
         status_code: 201
-      loop: "{{ hostnames }}"
+      loop: "{{ hosts_ips }}"
       when: 
-        - item not in existing_hosts  # Controleer of de host al voorkomt in de lijst van bestaande hosts
+        - item.0 not in existing_ips  # Controleer of het IP adres al voorkomt in de lijst van bestaande IP's
 
     - name: Output dat de host al bestaat
       debug:
-        msg: "Host {{ item }} bestaat al in de inventaris"
-      loop: "{{ hostnames }}"
+        msg: "Host {{ item.0 }} met naam {{ item.1 }} bestaat al in de inventaris"
+      loop: "{{ hosts_ips }}"
       when: 
-        - item in existing_hosts  # Output als de host al bestaat
+        - item.0 in existing_ips  # Output als het IP adres al bestaat
