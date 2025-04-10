@@ -1,6 +1,6 @@
 ---
 - name: Activeer en installeer gewenste PHP-versies in Plesk (7.4 en hoger)
-  hosts: plesk_servers
+  hosts: all
   become: yes
   tasks:
     - name: Haal lijst van geïnstalleerde PHP-versies op
