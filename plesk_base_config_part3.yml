@@ -16,9 +16,24 @@
     - name: Register Plesk with paid license
       command: /usr/sbin/plesk bin license --install "A00T00-GDEM10-QH3S91-E74V71-M8BN39"
 
-    # Set Plesk language to Dutch using the 'plesk bin lang' command
-    - name: Set Plesk language to Dutch
-      command: /usr/local/psa/bin/lang --set nl_NL
+    # Set Plesk language to Dutch via Plesk API (if available)
+    - name: Set Plesk language to Dutch (API call)
+      uri:
+        url: "https://localhost:8443/api/v2/server-settings"
+        method: POST
+        user: "admin"
+        password: "Bilspleet21?"
+        headers:
+          Content-Type: "application/json"
+        body:
+          {
+            "interface_locale": "nl_NL"
+          }
+        body_format: json
+        validate_certs: no
+        timeout: 30
+      register: response
+      ignore_errors: yes
 
     # Optional: Set default locale for all users (future logins)
     - name: Set default locale for Plesk
