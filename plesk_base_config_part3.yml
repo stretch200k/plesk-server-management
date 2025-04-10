@@ -8,10 +8,10 @@
       command: /usr/local/psa/bin/admin --set-password -passwd 'Bilspleet21?'
 
     - name: Set Plesk admin name and email
-      command: /usr/local/psa/bin/admin -u -email support@rafikihosting.nl -cname "RH Operations"
+      command: /usr/local/psa/bin/admin --update -email support@rafikihosting.nl -company "RH Operations"
 
     - name: Register Plesk with trial license
       command: /usr/local/psa/bin/license --retrieve
 
-    - name: Set Plesk language to Dutch
-      command: /usr/local/psa/bin/admin -u -interface_locale nl-NL
+    - name: Set Plesk interface language to Dutch
+      command: /usr/local/psa/bin/admin --update -interface_locale nl-NL
