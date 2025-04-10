@@ -28,20 +28,12 @@
         state: present
       when: ansible_os_family == "Debian"
 
-    # Set the default outgoing policy to allow
-    - name: Set the default outgoing policy to allow
-      ufw:
-        default: allow
-        direction: outgoing
-        state: enabled
-
-    # Open necessary ports for services
+    # Open necessary ports for services before enabling UFW
     - name: Allow incoming connections to SSH (port 22)
       ufw:
         rule: allow
         port: 22
         proto: tcp
-      # Ensure it doesn't use both `name` and `proto` at the same time
 
     - name: Allow incoming connections to FTP (port 21)
       ufw:
@@ -171,7 +163,7 @@
         port: 9100
         proto: tcp
 
-    # Enable UFW to start on boot
+    # Enable UFW to start on boot and then enable UFW
     - name: Enable UFW to start on boot
       ufw:
         state: enabled
