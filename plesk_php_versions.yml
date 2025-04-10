@@ -11,10 +11,6 @@
     - name: Definieer gewenste PHP-versies
       set_fact:
         php_versions:
-          - "7.0"
-          - "7.1"
-          - "7.2"
-          - "7.3"
           - "7.4"
           - "8.0"
           - "8.1"
@@ -22,11 +18,25 @@
           - "8.3"
           - "8.4"
 
-    - name: Activeer alle gewenste PHP-versies in Plesk
+    - name: Controleer welke PHP-versies geïnstalleerd zijn
+      set_fact:
+        installed_php_versions: "{{ php_handlers_output.stdout | select('search', 'plesk-php') | map('regex_replace', '^plesk-php(\\d+\\.\\d+).*', '\\1') | list }}"
+
+    - name: Installeer ontbrekende PHP-versies
+      shell: |
+        plesk installer --select-release-id Plesk_18_0_41 --install-component php{{ item }}
+      loop: "{{ php_versions }}"
+      when: item not in installed_php_versions
+      register: install_php_versions
+      ignore_errors: true
+      notify:
+        - Herlaad Plesk
+
+    - name: Activeer de beschikbare PHP-versies
       shell: |
         plesk bin php_handler --enable -id plesk-php{{ item }}
       loop: "{{ php_versions }}"
-      when: "'plesk-php{{ item }}' not in php_handlers_output.stdout"
+      when: item in installed_php_versions
       register: enable_php_handlers
       ignore_errors: true
 
@@ -38,3 +48,9 @@
     - name: Toon de lijst van ingeschakelde PHP-versies
       debug:
         msg: "{{ verify_php_handlers.stdout_lines }}"
+
+  handlers:
+    - name: Herlaad Plesk
+      service:
+        name: plesk
+        state: reloaded
