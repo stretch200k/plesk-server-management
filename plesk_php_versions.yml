@@ -1,38 +1,44 @@
 ---
 - name: Activeer meerdere PHP-versies in Plesk
   hosts: all
-  become: true
+  become: yes
   tasks:
     - name: Haal huidige PHP-handlers op
-      shell: plesk bin php_handler --list
+      command: plesk bin php_handler --list
       register: php_handlers_output
+      changed_when: false
 
     - name: Toon actieve/inactieve PHP-handlers
       debug:
-        var: php_handlers_output.stdout_lines
+        msg: "{{ php_handlers_output.stdout_lines }}"
 
     - name: Definieer gewenste PHP-versies
       set_fact:
         php_versions:
-          - 8.4
-          - 8.3
-          - 8.2
-          - 8.1
-          - 8.0
-          - 7.4
-          - 7.3
-          - 7.2
-          - 7.1
-          - 7.0
+          - "7.0"
+          - "7.1"
+          - "7.2"
+          - "7.3"
+          - "7.4"
+          - "8.0"
+          - "8.1"
+          - "8.2"
+          - "8.3"
+          - "8.4"
 
-    - name: Activeer PHP-versies als ze zijn geïnstalleerd maar nog niet actief
+    - name: Activeer PHP-versies die geïnstalleerd zijn maar nog niet actief
       shell: |
-        handler_id=$(plesk bin php_handler --list | grep "php{{ item }}" | awk '{print $1}')
-        if [ -n "$handler_id" ]; then
-          plesk bin php_handler --enable -id "$handler_id"
-        fi
-      loop: "{{ php_versions }}"
-      when: >
-        php_handlers_output.stdout is search("php" ~ item ~ " ")
-        and
-        php_handlers_output.stdout is search("php" ~ item ~ " off")
+        plesk bin php_handler --enable -id "$(plesk bin php_handler --list | grep 'plesk-php{{ item }}' | awk '{print $1}')"
+      with_items: "{{ php_versions }}"
+      when: "'plesk-php{{ item }}' not in php_handlers_output.stdout"
+      register: enable_php_handlers
+      ignore_errors: true
+
+    - name: Verifieer of PHP-handlers ingeschakeld zijn
+      command: plesk bin php_handler --list
+      register: verify_php_handlers
+      changed_when: false
+
+    - name: Toon de lijst van ingeschakelde PHP-versies
+      debug:
+        msg: "{{ verify_php_handlers.stdout_lines }}"
