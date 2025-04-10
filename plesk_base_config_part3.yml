@@ -12,10 +12,6 @@
     - name: Set Plesk admin password
       command: /usr/local/psa/bin/admin --update -passwd 'Bilspleet21?'
 
-    # Register Plesk with trial license
-    - name: Register Plesk with trial license
-      command: /usr/local/psa/bin/plesk installer --register-trial
-
     # Change Plesk interface language to Dutch
     - name: Set Plesk language to Dutch
       command: /usr/local/psa/bin/admin --update -interface_locale nl_NL
