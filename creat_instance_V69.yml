@@ -1,21 +1,22 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
   hosts: localhost
-  connection: local
   gather_facts: no
-
+  connection: local
   tasks:
-    - name: Stel de huidige datum in voor de VPS naam
+    - name: Genereer een willekeurig getal voor de VPS naam
       set_fact:
-        current_date: "{{ lookup('pipe', 'date +%Y-%m-%d_%H-%M-%S') }}"
-
+        vps_naam: "vps{{ 100 + (lookup('pipe', 'date +%s') | int) % 900 }}.rafikiserver.nl"
+    
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
-        url: "https://api.contabo.com/v1/instances"
+        url: "https://api.contabo.com/v1/compute/instances"
         method: POST
         headers:
-          Authorization: "Bearer T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
           Content-Type: "application/json"
+          Authorization: "Bearer T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
+          x-trace-id: "123213"
         body:
           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
           productId: "V69"
@@ -23,12 +24,11 @@
           sshKeys: []
           rootPassword: "Bilspleet21?"
           period: 1
-          displayName: "vps_{{ current_date }}"
-          userData: "#cloud-config\nhostname: vps_{{ current_date }}"
+          displayName: "{{ vps_naam }}"
         body_format: json
         status_code: 201
-      register: create_vps_response
+      register: vps_response
 
-    - name: Toon het antwoord van Contabo
+    - name: Geef de respons van de VPS aanmaak weer
       debug:
-        var: create_vps_response
+        var: vps_response
