@@ -17,7 +17,7 @@
   tasks:
     - name: Create reseller account via Plesk shell command
       ansible.builtin.shell: |
-        plesk bin reseller --create {{ client_username }} -passwd {{ client_password }} -email {{ client_email }} -role reseller -domains {{ client_domain_limit }} -mail {{ client_email_limit }}
+        plesk bin reseller --create {{ client_username }} -passwd {{ client_password }} -email {{ client_email }}
       become: yes
       become_method: sudo
 
