@@ -31,7 +31,7 @@
           x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
         body:
           name: "rootPassword5"
-          value: "ntNODYlzj97j0P"
+          value: "ntNODYlzj97j0P9?"
           type: "password"
         body_format: json
         return_content: yes
