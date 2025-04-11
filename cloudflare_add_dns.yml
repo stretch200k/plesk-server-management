@@ -29,13 +29,13 @@
         body_format: json
         body:
           type: A
-          name: "{{ item.name }}"
-          content: "{{ item.ipv4 }}"
+          name: "{{ item.description }}"
+          content: "{{ item.name }}"
           ttl: 1  # automatisch
           proxied: true  # Oranje wolk aan
         status_code: 200
       with_items: "{{ awx_host_data.json.results }}"
-      when: item.ipv4 is defined
+      when: item.name is defined
 
     - name: Toon de resultaten van Cloudflare updates
       debug:
