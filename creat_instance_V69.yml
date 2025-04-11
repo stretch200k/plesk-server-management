@@ -31,7 +31,7 @@
 
     - name: Set the existing rootPassword secretId
       set_fact:
-        secret_id: "156387"  # De ID van het eerder aangemaakte geheim
+        secret_id: "156395"  # De ID van het eerder aangemaakte geheim
 
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
