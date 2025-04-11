@@ -16,9 +16,9 @@
         return_content: yes
       register: awx_host_data
 
-    - name: Verzamel de IP's van de hosts
+    - name: Verzamel de IP's van de hosts, sla localhost en monitor server over
       set_fact:
-        new_ips: "{{ awx_host_data.json.results | selectattr('name', 'defined') | map(attribute='name') | list }}"
+        new_ips: "{{ awx_host_data.json.results | selectattr('name', 'defined') | map(attribute='name') | reject('equalto', 'localhost') | reject('equalto', '185.95.13.41') | list }}"
 
     - name: Update Prometheus config via SSH
       ansible.builtin.shell: |
