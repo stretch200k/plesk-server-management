@@ -45,7 +45,7 @@
           productId: "V69"
           region: "EU"
           sshKeys: []
-          rootPassword: "{{ secret_id }}"
+          rootPassword: "156387"
           userData: "#cloud-config\nhostname: {{ vps_name }}"
           period: 1
           displayName: "{{ vps_name }}"
