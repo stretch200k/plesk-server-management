@@ -32,7 +32,7 @@
       set_fact:
         record_exists: "{{ cloudflare_records.json.result | selectattr('name', 'equalto', item.description) | selectattr('content', 'equalto', item.name) | list | length > 0 }}"
       loop: "{{ awx_host_data.json.results }}"
-      when: cloudflare_records.json.result is defined
+      when: cloudflare_records.json.result is defined and item.name != "localhost"
 
     - name: Voeg A-record toe aan Cloudflare als het nog niet bestaat
       uri:
@@ -49,7 +49,7 @@
           ttl: 1  # automatisch
           proxied: true  # Oranje wolk aan
         status_code: 200
-      when: not record_exists
+      when: not record_exists and item.name != "localhost"
       loop: "{{ awx_host_data.json.results }}"
 
     - name: Toon de resultaten van Cloudflare updates
