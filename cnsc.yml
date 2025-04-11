@@ -32,7 +32,7 @@
         body:
           name: "rootPassword5"
           value: "ntNODYlzj97j0P"
-          type: "ssh"
+          type: "password"
         body_format: json
         return_content: yes
       register: secret_creation
