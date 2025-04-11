@@ -1,13 +1,15 @@
 ---
-- name: Werk Prometheus-configuratie bij met AWX IP's
+- name: Voeg AWX-host IP's toe aan Prometheus-configuratie
   hosts: localhost
-  connection: local
   gather_facts: no
+  connection: local
   vars:
-    prom_config_path: "/etc/prometheus/prometheus.yml"
     awx_api_token: "MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
     inventory_id: 2  # AWX inventory ID
-
+    prometheus_config_path: "/etc/prometheus/prometheus.yml"
+    prometheus_server_ip: "185.95.13.41"
+    ansible_ssh_user: "root"  # SSH-gebruiker
+    ansible_ssh_pass: "sefuisbaas.nl"  # SSH-wachtwoord
   tasks:
     - name: Verkrijg AWX hosts en IP's
       uri:
@@ -17,33 +19,29 @@
         return_content: yes
       register: awx_host_data
 
-    - name: Lees de bestaande Prometheus-configuratie
-      slurp:
-        src: "{{ prom_config_path }}"
-      register: prometheus_config_raw
-
-    - name: Decodeer de Prometheus-configuratie
+    - name: Verzamel de IP's van de hosts
       set_fact:
-        prometheus_config: "{{ prometheus_config_raw.content | b64decode | from_yaml }}"
+        ip_addresses: "{{ awx_host_data.json.results | selectattr('name', 'defined') | map(attribute='name') | list }}"
 
-    - name: Voeg nieuwe targets toe aan Prometheus-configuratie
-      set_fact:
-        new_targets: "{{ awx_host_data.json.results | selectattr('name', 'defined') | map(attribute='name') | map('regex_replace', '^', 'http://') | map('regex_replace', '$', ':9100') | list }}"
+    - name: Update Prometheus-configuratie met nieuwe IP's
+      ansible.builtin.lineinfile:
+        path: "{{ prometheus_config_path }}"
+        regexp: '^scrape_configs:'
+        line: |
+          scrape_configs:
+            - job_name: 'node_exporter'
+              static_configs:
+                {% for ip in ip_addresses %}
+                - targets: ['{{ ip }}:9100']   # {{ ip }}
+                {% endfor %}
+      delegate_to: "{{ prometheus_server_ip }}"
+      become: yes
+      become_user: root
 
-    - name: Verwijder oude targets die niet meer bestaan
-      set_fact:
-        updated_targets: "{{ prometheus_config.scrape_configs[0].static_configs[0].targets | difference(new_targets) }}"
-
-    - name: Voeg de nieuwe targets toe aan de configuratie
-      set_fact:
-        prometheus_config_updated: "{{ prometheus_config | merge({'scrape_configs': [{'job_name': 'node_exporter', 'static_configs': [{'targets': new_targets + updated_targets}]}]}) }}"
-
-    - name: Sla de bijgewerkte Prometheus-configuratie op
-      copy:
-        dest: "{{ prom_config_path }}"
-        content: "{{ prometheus_config_updated | to_yaml | indent(2) }}"
-      
-    - name: Herstart Prometheus om de configuratie te laden
-      systemd:
+    - name: Herstart Prometheus service
+      ansible.builtin.systemd:
         name: prometheus
         state: restarted
+      delegate_to: "{{ prometheus_server_ip }}"
+      become: yes
+      become_user: root
