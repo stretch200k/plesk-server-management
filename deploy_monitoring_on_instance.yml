@@ -1,12 +1,10 @@
 ---
 - name: Update Prometheus configuration with new IPs from AWX
-  hosts: localhost
-  connection: local
+  hosts: 185.95.13.41  # Prometheus server
   gather_facts: no
   vars:
     awx_api_token: "MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
     inventory_id: 2  # AWX inventory ID
-    prometheus_server_ip: "185.95.13.41"
     prometheus_config_path: "/etc/prometheus/prometheus.yml"
 
   tasks:
@@ -22,22 +20,21 @@
       set_fact:
         new_ips: "{{ awx_host_data.json.results | selectattr('name', 'defined') | map(attribute='name') | list }}"
 
-    - name: Verbind via SSH naar de Prometheus server en pas configuratie aan
-      ansible.builtin.ssh:
-        host: "{{ prometheus_server_ip }}"
-        user: root
-        password: "sefuisbaas.nl"
-        command: |
-          # Controleer en werk Prometheus config bij met de nieuwe IP's
-          echo "scrape_configs:" > {{ prometheus_config_path }}
-          echo "  - job_name: 'node_exporter'" >> {{ prometheus_config_path }}
-          echo "    static_configs:" >> {{ prometheus_config_path }}
-          {% for ip in new_ips %}
-          echo "      - targets: ['{{ ip }}:9100']" >> {{ prometheus_config_path }}
-          {% endfor %}
-          echo "      # Voeg meer configuraties toe indien nodig" >> {{ prometheus_config_path }}
+    - name: Update Prometheus config via SSH
+      ansible.builtin.shell: |
+        echo "scrape_configs:" > {{ prometheus_config_path }}
+        echo "  - job_name: 'node_exporter'" >> {{ prometheus_config_path }}
+        echo "    static_configs:" >> {{ prometheus_config_path }}
+        {% for ip in new_ips %}
+        echo "      - targets: ['{{ ip }}:9100']" >> {{ prometheus_config_path }}
+        {% endfor %}
+        echo "      # Voeg meer configuraties toe indien nodig" >> {{ prometheus_config_path }}
+      become: yes
+      become_method: sudo
 
     - name: Herstart Prometheus service
       ansible.builtin.systemd:
         name: prometheus
         state: restarted
+      become: yes
+      become_method: sudo
