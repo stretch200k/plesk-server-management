@@ -1,0 +1,62 @@
+---
+- name: Haal VPS-informatie op en voeg toe aan AWX
+  hosts: localhost
+  connection: local
+  vars:
+    client_id: "INT-13273960"
+    client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+    username: "support@rafikihosting.nl"
+    password: "Bilspleet21?"
+    awx_token: "MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
+    awx_url: "http://185.107.90.120:31151"
+    inventory_id: 2  # Pas aan naar je eigen inventory ID
+
+  tasks:
+    - name: Vraag een access token op
+      uri:
+        url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
+        method: POST
+        body:
+          client_id: "{{ client_id }}"
+          client_secret: "{{ client_secret }}"
+          username: "{{ username }}"
+          password: "{{ password }}"
+          grant_type: "password"
+        body_format: form-urlencoded
+        return_content: yes
+      register: contabo_auth
+
+    - name: Haal lijst met instances op
+      uri:
+        url: "https://api.contabo.com/v1/compute/instances?ipConfig=true"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ contabo_auth.json.access_token }}"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
+        return_content: yes
+      register: contabo_instances
+
+    - name: Voeg elke instance toe aan AWX
+      loop: "{{ contabo_instances.json.data }}"
+      vars:
+        hostname: "{{ item.displayName }}"
+        ip_address: "{{ item.ipConfig.ipv4[0].address if item.ipConfig.ipv4 is defined and item.ipConfig.ipv4|length > 0 else '' }}"
+      when: ip_address != ''
+      uri:
+        url: "{{ awx_url }}/api/v2/hosts/"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ awx_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          name: "{{ hostname }}"
+          inventory: "{{ inventory_id }}"
+          variables: |
+            ansible_host: {{ ip_address }}
+        status_code: 201,400
+      register: host_add_result
+
+    - name: Toon resultaten per host
+      debug:
+        var: host_add_result
