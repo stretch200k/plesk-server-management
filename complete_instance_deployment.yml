@@ -49,9 +49,18 @@
           Gebruikersnaam: {{ client_username }}
           Wachtwoord: {{ client_password }}
 
-          Je hebt de volgende limieten toegewezen gekregen:
+          Je hebt de volgende resources toegewezen gekregen:
+          - RAM: 4GB
+          - CPU: 4 Cores
           - Domeinen: {{ client_domain_limit }}
           - E-mailaccounts: {{ client_email_limit }}
+          - Updates/Onderhoud 
+          - Monitoring
+          - Beveiliging
+          - WP-Rocket
+          - Managed Back-ups:
+          
+        
 
           Als je vragen hebt of hulp nodig hebt, aarzel dan niet om contact op te nemen met onze klantenservice.
 
