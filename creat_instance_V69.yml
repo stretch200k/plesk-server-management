@@ -30,13 +30,28 @@
       set_fact:
         vps_name: "vps{{ vps_name_date }}.rafikiserver.nl"
 
-    - name: Set the existing rootPassword secretId
-      set_fact:
-        secret_id: "156377"  # De ID van het eerder aangemaakte geheim
+    - name: Update root password secret on Contabo
+      uri:
+        url: "https://api.contabo.com/v1/secrets/156377"  # De ID van de eerder aangemaakte root password secret
+        method: PUT
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
+        body:
+          name: "rootPassword"
+          type: "password"
+          value: "Bilspleet21??"
+        body_format: json
+        return_content: yes
+      register: updated_secret_response
+
+    - name: Show updated secret response
+      debug:
+        var: updated_secret_response
 
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
-        url: "https://api.contabo.com/v1/compute/instances"
+        url: "https://api.contabo.com/v1/compute/instances"  # Aangepaste URL
         method: POST
         headers:
           Authorization: "Bearer {{ access_token }}"
