@@ -1,8 +1,8 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
-  connection: local
   hosts: localhost
   gather_facts: no
+  connection: local
   vars:
     CLIENT_ID: "INT-13273960"
     CLIENT_SECRET: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
@@ -31,7 +31,21 @@
       set_fact:
         access_token: "{{ oauth_response.json.access_token }}"
 
-    - name: Create secret for root password
+    - name: Check if root password secret exists
+      uri:
+        url: "https://api.contabo.com/v1/secrets"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+        return_content: yes
+      register: secret_check_response
+
+    - name: Set secretId if rootPassword exists
+      set_fact:
+        secret_id: "{{ secret_check_response.json.data | selectattr('name', 'equalto', 'rootPassword') | map(attribute='secretId') | first }}"
+      when: secret_check_response.json.data | selectattr('name', 'equalto', 'rootPassword') | length > 0
+
+    - name: Create secret for root password if not exists
       uri:
         url: "https://api.contabo.com/v1/secrets"
         method: POST
@@ -44,11 +58,13 @@
           type: "password"
         body_format: json
         return_content: yes
+      when: secret_id is not defined
       register: secret_creation
 
-    - name: Set secretId as fact
+    - name: Set secretId if rootPassword was created
       set_fact:
         secret_id: "{{ secret_creation.json.data[0].secretId }}"
+      when: secret_id is not defined
 
     - name: Set de huidige datum in voor de VPS naam
       set_fact:
