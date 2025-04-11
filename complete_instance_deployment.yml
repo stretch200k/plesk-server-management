@@ -1,0 +1,44 @@
+---
+- name: Automate Plesk reseller account creation and send email
+  hosts: 37.128.150.202
+  gather_facts: no
+  vars:
+    client_email: "sefu@live.nl"
+    client_username: "sefu@live.nl"
+    client_password: "reseller_password"
+    client_domain_limit: 4
+    client_email_limit: 50
+    smtp_host: "mail.rafikihosting.nl"
+    smtp_port: 587
+    smtp_username: "support@rafikihosting.nl"
+    smtp_password: "Bilspleet21??"
+    server_ip: "vps689.rafikiserver.nl"
+
+  tasks:
+    - name: Create reseller account via Plesk shell command
+      ansible.builtin.shell: |
+        plesk bin reseller --create {{ client_username }} -passwd {{ client_password }} -email {{ client_email }} -role reseller -domains {{ client_domain_limit }} -mail {{ client_email_limit }}
+      become: yes
+      become_method: sudo
+
+    - name: Send email to client
+      mail:
+        host: "{{ smtp_host }}"
+        port: "{{ smtp_port }}"
+        username: "{{ smtp_username }}"
+        password: "{{ smtp_password }}"
+        to: "{{ client_email }}"
+        subject: "Your Plesk Server is Ready"
+        body: |
+          Dear Customer,
+
+          Your Plesk server is now ready. Here are your login details:
+
+          Plesk Panel: https://{{ server_ip }}:8443
+          Username: {{ client_username }}
+          Password: {{ client_password }}
+
+          Thank you for choosing our service.
+
+          Best regards,
+          Your Hosting Team
