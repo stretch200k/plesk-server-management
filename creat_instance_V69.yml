@@ -8,8 +8,9 @@
     CLIENT_SECRET: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
     API_USER: "support@rafikihosting.nl"
     API_PASSWORD: "Bilspleet21?"
-    root_password: "Bilspleet211?"
+    root_password: "Bilspleet21?"
     access_token: ""
+    secret_id: ""
 
   tasks:
     - name: Verkrijg API-token van Contabo
@@ -45,15 +46,19 @@
         return_content: yes
       register: secret_creation
 
-    - name: Set the current date for VPS name
+    - name: Set secretId as fact
+      set_fact:
+        secret_id: "{{ secret_creation.json.data[0].secretId }}"
+
+    - name: Set de huidige datum in voor de VPS naam
       set_fact:
         current_date: "{{ ansible_date_time.date }}"
 
-    - name: Generate VPS name
+    - name: Genereer VPS naam
       set_fact:
         vps_name: "vps{{ current_date | replace('-', '') }}.rafikiserver.nl"
 
-    - name: Create new VPS on Contabo
+    - name: Nieuwe VPS aanmaken op Contabo
       uri:
         url: "https://api.contabo.com/v1/instances"
         method: POST
@@ -65,11 +70,12 @@
           productId: "V76"
           region: "EU"
           sshKeys: []
-          rootPassword: "{{ secret_creation.json.id }}"
+          rootPassword: "{{ secret_id }}"
           userData: "#cloud-config\nhostname: {{ vps_name }}"
+          license: "PleskAdmin"
           period: 1
           displayName: "{{ vps_name }}"
-          defaultUser: "root"
+          defaultUser: "admin"
         body_format: json
         return_content: yes
       register: vps_creation
