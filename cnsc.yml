@@ -30,9 +30,9 @@
           Authorization: "Bearer {{ access_token }}"
           x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
         body:
-          name: "rootPassword4"
-          value: "Bilspleet21?@"
-          type: "password"
+          name: "rootPassword5"
+          value: "ntNODYlzj97j0P"
+          type: "ssh"
         body_format: json
         return_content: yes
       register: secret_creation
