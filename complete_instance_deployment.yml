@@ -9,9 +9,9 @@
     client_domain_limit: 4
     client_email_limit: 50
     smtp_host: "mail.rafikihosting.nl"
-    smtp_port: 587
-    smtp_username: "support@rafikihosting.nl"
-    smtp_password: "Bilspleet21??"
+    smtp_port: 465
+    smtp_username: "sales@rafikihosting.nl"
+    smtp_password: "Welkom123!?"
     server_ip: "vps689.rafikiserver.nl"
 
   tasks:
