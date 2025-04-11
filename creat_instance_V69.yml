@@ -36,7 +36,7 @@
 
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
-        url: "https://api.contabo.com/v1/instances"
+        url: "https://api.contabo.com/v1/compute/instances"
         method: POST
         headers:
           Authorization: "Bearer {{ access_token }}"
