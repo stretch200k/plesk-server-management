@@ -38,7 +38,7 @@
           x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
         body:
           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
-          productId: "V72"
+          productId: "V73"
           region: "EU"
           sshKeys: []
           rootPassword: 156397  # Direct de ID gebruiken zoals in de documentatie
