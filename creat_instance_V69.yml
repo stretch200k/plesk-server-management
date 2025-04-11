@@ -1,5 +1,6 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
+  connection: local
   hosts: localhost
   gather_facts: no
   vars:
