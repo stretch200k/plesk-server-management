@@ -13,6 +13,9 @@
     smtp_username: "sales@rafikihosting.nl"
     smtp_password: "Welkom123!?"
     server_ip: "vps689.rafikiserver.nl"
+    server_hostname: "vps689.rafikiserver.nl"
+    from_email: "sales@rafikihosting.nl"
+    subject_line: "Oplevering van jouw Managed VPS ({{ server_hostname }})"
 
   tasks:
     - name: Check if reseller already exists
@@ -35,17 +38,25 @@
         username: "{{ smtp_username }}"
         password: "{{ smtp_password }}"
         to: "{{ client_email }}"
-        subject: "Your Plesk Server is Ready"
+        from: "{{ from_email }}"
+        subject: "{{ subject_line }}"
         body: |
-          Dear Customer,
+          Geachte klant,
 
-          Your Plesk server is now ready. Here are your login details:
+          We zijn verheugd je te kunnen informeren dat je Managed VPS succesvol is opgezet en klaar voor gebruik. Hieronder vind je de toegangsinformatie:
 
-          Plesk Panel: https://{{ server_ip }}:8443
-          Username: {{ client_username }}
-          Password: {{ client_password }}
+          Plesk Paneel: https://{{ server_hostname }}:8443
+          Gebruikersnaam: {{ client_username }}
+          Wachtwoord: {{ client_password }}
 
-          Thank you for choosing our service.
+          Je hebt de volgende limieten toegewezen gekregen:
+          - Domeinen: {{ client_domain_limit }}
+          - E-mailaccounts: {{ client_email_limit }}
 
-          Best regards,
-          Your Hosting Team
+          Als je vragen hebt of hulp nodig hebt, aarzel dan niet om contact op te nemen met onze klantenservice.
+
+          Bedankt voor het kiezen van Rafiki Hosting!
+
+          Met vriendelijke groet,
+          
+          Het Rafiki Hosting Team
