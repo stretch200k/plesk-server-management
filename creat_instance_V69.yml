@@ -26,6 +26,10 @@
       set_fact:
         vps_name: "vps{{ current_date }}.rafikiserver.nl"
 
+    - name: Genereer een unieke x-request-id
+      set_fact:
+        x_request_id: "{{ lookup('pipe', 'uuidgen') }}"
+
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
         url: "https://api.contabo.com/v1/compute/instances"
@@ -33,6 +37,7 @@
         headers:
           Authorization: "Bearer {{ access_token }}"
           Content-Type: "application/json"
+          x-request-id: "{{ x_request_id }}"
         body:
           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
           productId: "V69"
