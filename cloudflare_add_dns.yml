@@ -19,7 +19,22 @@
         return_content: yes
       register: awx_host_data
 
-    - name: Voeg A-record toe aan Cloudflare
+    - name: Verkrijg bestaande DNS-records van Cloudflare
+      uri:
+        url: "https://api.cloudflare.com/client/v4/zones/{{ cloudflare_zone_id }}/dns_records"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ cloudflare_api_token }}"
+        return_content: yes
+      register: cloudflare_records
+
+    - name: Controleer of het A-record al bestaat
+      set_fact:
+        record_exists: "{{ cloudflare_records.json.result | selectattr('name', 'equalto', item.description) | selectattr('content', 'equalto', item.name) | list | length > 0 }}"
+      loop: "{{ awx_host_data.json.results }}"
+      when: cloudflare_records.json.result is defined
+
+    - name: Voeg A-record toe aan Cloudflare als het nog niet bestaat
       uri:
         url: "https://api.cloudflare.com/client/v4/zones/{{ cloudflare_zone_id }}/dns_records"
         method: POST
@@ -34,8 +49,8 @@
           ttl: 1  # automatisch
           proxied: true  # Oranje wolk aan
         status_code: 200
-      with_items: "{{ awx_host_data.json.results }}"
-      when: item.name is defined
+      when: not record_exists
+      loop: "{{ awx_host_data.json.results }}"
 
     - name: Toon de resultaten van Cloudflare updates
       debug:
