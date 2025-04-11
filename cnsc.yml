@@ -1,0 +1,42 @@
+---
+- name: Create a new secret in Contabo
+  hosts: localhost
+  connection: local
+  tasks:
+
+    - name: Get API access token from Contabo
+      uri:
+        url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
+        method: POST
+        body:
+          client_id: "INT-13273960"
+          client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+          username: "support@rafikihosting.nl"
+          password: "Bilspleet21?"
+          grant_type: "password"
+        body_format: form-urlencoded
+        return_content: yes
+      register: auth_response
+
+    - name: Set access token as fact
+      set_fact:
+        access_token: "{{ auth_response.json.access_token }}"
+
+    - name: Create new secret for root password
+      uri:
+        url: "https://api.contabo.com/v1/secrets"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
+        body:
+          name: "rootPassword"
+          value: "Bilspleet21??"
+          type: "password"
+        body_format: json
+        return_content: yes
+      register: secret_creation
+
+    - name: Show new secret creation response
+      debug:
+        var: secret_creation
