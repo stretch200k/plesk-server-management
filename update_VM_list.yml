@@ -9,7 +9,7 @@
     password: "Bilspleet21?"
     awx_token: "MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
     awx_url: "http://185.107.90.120:31151"
-    inventory_id: 2  # Pas aan naar je eigen inventory ID
+    inventory_id: 1
 
   tasks:
     - name: Vraag een access token op
@@ -40,7 +40,7 @@
       loop: "{{ contabo_instances.json.data }}"
       vars:
         hostname: "{{ item.displayName }}"
-        ip_address: "{{ item.ipConfig.ipv4[0].address if item.ipConfig.ipv4 is defined and item.ipConfig.ipv4|length > 0 else '' }}"
+        ip_address: "{{ item.ipConfig.v4.ip | default('') }}"
       when: ip_address != ''
       uri:
         url: "{{ awx_url }}/api/v2/hosts/"
@@ -57,6 +57,8 @@
         status_code: 201,400
       register: host_add_result
 
-    - name: Toon resultaten per host
+    - name: Toon toegevoegde hosts
       debug:
-        var: host_add_result
+        msg: "Toegevoegd: {{ item.displayName }} ({{ item.ipConfig.v4.ip }})"
+      loop: "{{ contabo_instances.json.data }}"
+      when: item.ipConfig.v4.ip is defined
