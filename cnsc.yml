@@ -30,7 +30,7 @@
           Authorization: "Bearer {{ access_token }}"
           x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
         body:
-          name: "rootPassword"
+          name: "rootPassword2"
           value: "Bilspleet21??"
           type: "password"
         body_format: json
