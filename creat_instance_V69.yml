@@ -1,27 +1,37 @@
 ---
-- name: VPS aanmaken via Contabo API
+- name: Nieuwe VPS aanmaken op Contabo
   hosts: localhost
-  gather_facts: no
+  gather_facts: yes
+
   tasks:
+    - name: Verzamel feiten
+      ansible.builtin.setup:
+        gather_facts: yes
+
+    - name: Set datum en tijd voor de VPS naam
+      set_fact:
+        current_date: "{{ ansible_date_time.iso8601 }}"
+
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
         url: "https://api.contabo.com/v1/instances"
         method: POST
         headers:
-          Authorization: "Bearer T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
+          Authorization: "Bearer {{ contabo_api_token }}"
           Content-Type: "application/json"
         body:
-          productId: "V699"  # Specifieke productId, bijv. V96 voor jouw VPS product
-          region: "EU"  # Altijd EU
-          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"  # Ubuntu 22.04
-          rootPassword: "Bilspleet21?"  # Rootwachtwoord
-          period: 1  # Altijd 1 maand
-          displayName: "vps{{ ansible_date_time.iso8601_basic }}"  # Naam met datumstempel
-          userData: ""  # Optionele Cloud-Init configuratie
+          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
+          productId: "V69"
+          region: "EU"
+          sshKeys: []
+          rootPassword: "Bilspleet21?"
+          period: 1
+          displayName: "vps_{{ current_date }}"
+          userData: "#cloud-config\nhostname: vps_{{ current_date }}"
         body_format: json
-        status_code: 200
-      register: vps_creation
+        status_code: 201
+      register: create_vps_response
 
-    - name: Toon resultaat van VPS aanmaak
+    - name: Toon het antwoord van Contabo
       debug:
-        msg: "VPS aangemaakt: {{ vps_creation.json }}"
+        var: create_vps_response
