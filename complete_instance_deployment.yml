@@ -15,9 +15,16 @@
     server_ip: "vps689.rafikiserver.nl"
 
   tasks:
+    - name: Check if reseller already exists
+      ansible.builtin.shell: |
+        plesk bin reseller --info {{ client_username }}
+      register: reseller_check
+      ignore_errors: yes
+
     - name: Create reseller account via Plesk shell command
       ansible.builtin.shell: |
-        plesk bin reseller --create {{ client_username }} -passwd {{ client_password }} -email {{ client_email }} -name "{{ client_username }}"
+        plesk bin reseller --create {{ client_username }} -passwd {{ client_password }} -email {{ client_email }} -role reseller -domains {{ client_domain_limit }} -mail {{ client_email_limit }}
+      when: reseller_check.rc != 0
       become: yes
       become_method: sudo
 
