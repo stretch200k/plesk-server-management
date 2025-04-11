@@ -29,10 +29,6 @@
       set_fact:
         vps_name: "vps{{ vps_name_date }}.rafikiserver.nl"
 
-    - name: Set the existing rootPassword secretId
-      set_fact:
-        secret_id: "156397"  # De ID van het eerder aangemaakte geheim
-
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
         url: "https://api.contabo.com/v1/compute/instances"
@@ -45,7 +41,7 @@
           productId: "V69"
           region: "EU"
           sshKeys: []
-          rootPassword: "{{ secret_id }}"
+          rootPassword: 156397  # Direct de ID gebruiken zoals in de documentatie
           userData: "#cloud-config\nhostname: {{ vps_name }}"
           period: 1
           displayName: "{{ vps_name }}"
