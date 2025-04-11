@@ -4,19 +4,20 @@
   hosts: localhost
   tasks:
 
-    - name: Verkrijg API-token van Contabo
-      uri:
-        url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
-        method: POST
-        body:
-          client_id: "INT-13273960"
-          client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
-          username: "support@rafikihosting.nl"
-          password: "Bilspleet21?"
-          grant_type: "password"
-        body_format: json
-        return_content: yes
-      register: auth_response
+- name: Verkrijg API-token van Contabo
+  uri:
+    url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
+    method: POST
+    body:
+      client_id: "INT-13273960"
+      client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+      username: "support@rafikihosting.nl"
+      password: "Bilspleet21?"
+      grant_type: "password"
+    body_format: form-urlencoded
+    return_content: yes
+  register: auth_response
+
 
     - name: Set the access token as a fact
       set_fact:
