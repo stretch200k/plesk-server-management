@@ -1,74 +1,59 @@
 ---
- - name: Nieuwe VPS aanmaken op Contabo
-   connection: local
-   hosts: localhost
-   tasks:
- 
- - name: Verkrijg API-token van Contabo
-   uri:
-     url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
-     method: POST
-     body:
-       client_id: "INT-13273960"
-       client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
-       username: "support@rafikihosting.nl"
-       password: "Bilspleet21?"
-       grant_type: "password"
-     body_format: form-urlencoded
-     return_content: yes
-   register: auth_response
- 
-     - name: Verkrijg API-token van Contabo
-       uri:
-         url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
-         method: POST
-         body:
-           client_id: "INT-13273960"
-           client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
-           username: "support@rafikihosting.nl"
-           password: "Bilspleet21?"
-           grant_type: "password"
-         body_format: form-urlencoded
-         return_content: yes
-       register: auth_response
- 
-     - name: Set the access token as a fact
-       set_fact:
-         access_token: "{{ auth_response.json.access_token }}"
- 
-     - name: Set de huidige datum in voor de VPS naam
-       set_fact:
-         vps_name_date: "{{ ansible_date_time.iso8601_basic_short }}"
- 
-     - name: Genereer VPS naam
-       set_fact:
-         vps_name: "vps{{ vps_name_date }}.rafikiserver.nl"
- 
-     - name: Set the existing rootPassword secretId
-       set_fact:
-         secret_id: "156385"  # De ID van het eerder aangemaakte geheim
- 
-     - name: Nieuwe VPS aanmaken op Contabo
-       uri:
-         url: "https://api.contabo.com/v1/compute/instances"
-         method: POST
-         headers:
-           Authorization: "Bearer {{ access_token }}"
-           x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
-         body:
-           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
-           productId: "V69"
-           region: "EU"
-           sshKeys: []
-           rootPassword: "{{ secret_id }}"
-           userData: "#cloud-config\nhostname: {{ vps_name }}"
-           period: 1
-           displayName: "{{ vps_name }}"
-           defaultUser: "root"
-         body_format: json
-         return_content: yes
-       register: vps_creation
- 
-     - name: Show VPS creation response
-       debug:
-         var: vps_creation
+- name: Nieuwe VPS aanmaken op Contabo
+  connection: local
+  hosts: localhost
+  tasks:
+    - name: Verkrijg API-token van Contabo
+      uri:
+        url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
+        method: POST
+        body:
+          client_id: "INT-13273960"
+          client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+          username: "support@rafikihosting.nl"
+          password: "Bilspleet21?"
+          grant_type: "password"
+        body_format: form-urlencoded
+        return_content: yes
+      register: auth_response
+
+    - name: Set the access token as a fact
+      set_fact:
+        access_token: "{{ auth_response.json.access_token }}"
+
+    - name: Set de huidige datum in voor de VPS naam
+      set_fact:
+        vps_name_date: "{{ ansible_date_time.iso8601_basic_short }}"
+
+    - name: Genereer VPS naam
+      set_fact:
+        vps_name: "vps{{ vps_name_date }}.rafikiserver.nl"
+
+    - name: Set the existing rootPassword secretId
+      set_fact:
+        secret_id: "156385"  # De ID van het eerder aangemaakte geheim
+
+    - name: Nieuwe VPS aanmaken op Contabo
+      uri:
+        url: "https://api.contabo.com/v1/compute/instances"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
+        body:
+          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
+          productId: "V69"
+          region: "EU"
+          sshKeys: []
+          rootPassword: "{{ secret_id }}"
+          userData: "#cloud-config\nhostname: {{ vps_name }}"
+          period: 1
+          displayName: "{{ vps_name }}"
+          defaultUser: "root"
+        body_format: json
+        return_content: yes
+      register: vps_creation
+
+    - name: Show VPS creation response
+      debug:
+        var: vps_creation
