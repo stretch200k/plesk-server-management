@@ -1,7 +1,7 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
-  hosts: localhost
   connection: local
+  hosts: localhost
   tasks:
     - name: Verkrijg API-token van Contabo
       uri:
@@ -9,20 +9,24 @@
         method: POST
         headers:
           Content-Type: "application/x-www-form-urlencoded"
-        body:
-          client_id: "INT-13273960"
-          client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
-          username: "support@rafikihosting.nl"
-          password: "Bilspleet21?"
-          grant_type: "password"
+        body: "client_id=INT-13273960&client_secret=rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ&username=support@rafikihosting.nl&password=Bilspleet21?&grant_type=password"
+        body_format: raw
         return_content: yes
       register: token_response
 
-    - name: Zet het API-token in een variabele
+    - name: Set the access token as a fact
       set_fact:
         access_token: "{{ token_response.json.access_token }}"
 
-    - name: Maak VPS aan op Contabo
+    - name: Set de huidige datum in voor de VPS naam
+      set_fact:
+        current_date: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
+
+    - name: Genereer VPS naam
+      set_fact:
+        vps_name: "vps{{ current_date }}.rafikiserver.nl"
+
+    - name: Nieuwe VPS aanmaken op Contabo
       uri:
         url: "https://api.contabo.com/v1/compute/instances"
         method: POST
@@ -30,15 +34,17 @@
           Authorization: "Bearer {{ access_token }}"
           Content-Type: "application/json"
         body:
-          region: "EU"
-          productId: "V69"
           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
-          period: 1
-          displayName: "vps408.rafikiserver.nl"
+          productId: "V69"
+          region: "EU"
+          sshKeys: []
           rootPassword: "Bilspleet21?"
+          displayName: "{{ vps_name }}"
+          period: 1
+        body_format: json
         return_content: yes
       register: vps_creation_response
 
-    - name: Toon VPS creatie resultaat
+    - name: Toon resultaat van VPS aanmaak
       debug:
-        msg: "{{ vps_creation_response }}"
+        var: vps_creation_response
