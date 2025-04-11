@@ -13,7 +13,7 @@
         url: "https://api.contabo.com/v1/instances"
         method: POST
         headers:
-          Authorization: "Bearer {{ contabo_api_token }}"
+          Authorization: "Bearer T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
           Content-Type: "application/json"
         body:
           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
