@@ -1,6 +1,7 @@
 ---
 - name: Voeg A-record toe aan Cloudflare voor AWX-instanties
   hosts: localhost
+  connection: local
   gather_facts: no
   vars:
     cloudflare_api_token: "T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
