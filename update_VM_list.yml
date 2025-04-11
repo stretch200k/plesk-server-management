@@ -9,7 +9,7 @@
     password: "Bilspleet21?"
     awx_token: "MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
     awx_url: "http://185.107.90.120:31151"
-    inventory_id: 1
+    inventory_id: 2
 
   tasks:
     - name: Vraag een access token op
@@ -39,8 +39,8 @@
     - name: Voeg elke instance toe aan AWX
       loop: "{{ contabo_instances.json.data }}"
       vars:
-        hostname: "{{ item.displayName }}"
         ip_address: "{{ item.ipConfig.v4.ip | default('') }}"
+        hostname: "{{ item.displayName }}"
       when: ip_address != ''
       uri:
         url: "{{ awx_url }}/api/v2/hosts/"
@@ -50,7 +50,8 @@
           Content-Type: "application/json"
         body_format: json
         body:
-          name: "{{ hostname }}"
+          name: "{{ ip_address }}"
+          description: "{{ hostname }}"
           inventory: "{{ inventory_id }}"
           variables: |
             ansible_host: {{ ip_address }}
