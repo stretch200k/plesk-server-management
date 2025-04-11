@@ -1,0 +1,60 @@
+---
+- name: Voeg A-record toe aan Cloudflare voor AWX-instanties
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    cloudflare_api_token: "T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
+    cloudflare_zone_id: "cafd6808498a39b169edf97536f2cbdf"
+    domain: "rafikiserver.nl"
+    inventory_id: 2  # AWX inventory ID
+
+  tasks:
+    - name: Verkrijg toegangstoken voor Contabo API
+      uri:
+        url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
+        method: POST
+        body:
+          client_id: "INT-13273960"
+          client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+          username: "support@rafikihosting.nl"
+          password: "Bilspleet21?"
+          grant_type: "password"
+        body_format: form-urlencoded
+        return_content: yes
+      register: auth_response
+
+    - name: Set the access token as a fact
+      set_fact:
+        access_token: "{{ auth_response.json.access_token }}"
+
+    - name: Haal de lijst met AWX-instanties op
+      uri:
+        url: "https://api.contabo.com/v1/compute/instances"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+        return_content: yes
+      register: instances_response
+
+    - name: Voeg elke instance toe aan Cloudflare
+      uri:
+        url: "https://api.cloudflare.com/client/v4/zones/{{ cloudflare_zone_id }}/dns_records"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ cloudflare_api_token }}"
+          Content-Type: "application/json"
+        body_format: json
+        body:
+          type: A
+          name: "{{ item.displayName }}"
+          content: "{{ item.ipConfig.v4.ip }}"
+          ttl: 1  # automatisch
+          proxied: true  # Oranje wolk aan
+        status_code: 200
+      with_items: "{{ instances_response.json.data }}"
+      when: item.ipConfig is defined and item.ipConfig.v4 is defined
+
+    - name: Toon de resultaten van Cloudflare updates
+      debug:
+        var: result.json
