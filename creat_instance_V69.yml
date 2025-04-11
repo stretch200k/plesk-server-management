@@ -4,9 +4,9 @@
   gather_facts: no
 
   tasks:
-    - name: Set datum en tijd voor de VPS naam
+    - name: Stel de huidige datum in voor de VPS naam
       set_fact:
-        current_date: "{{ ansible_date_time.iso8601 }}"
+        current_date: "{{ lookup('pipe', 'date +%Y-%m-%d_%H-%M-%S') }}"
 
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
