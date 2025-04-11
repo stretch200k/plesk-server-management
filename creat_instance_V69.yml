@@ -1,34 +1,44 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
   hosts: localhost
-  gather_facts: no
   connection: local
   tasks:
-    - name: Genereer een willekeurig getal voor de VPS naam
+    - name: Verkrijg API-token van Contabo
+      uri:
+        url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
+        method: POST
+        body:
+          client_id: "INT-13273960"
+          client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+          username: "support@rafikihosting.nl"
+          password: "Bilspleet21?"
+          grant_type: "password"
+        headers:
+          Content-Type: "application/x-www-form-urlencoded"
+        return_content: yes
+      register: result
+
+    - name: Zet het API-token in een variabele
       set_fact:
-        vps_naam: "vps{{ 100 + (lookup('pipe', 'date +%s') | int) % 900 }}.rafikiserver.nl"
-    
-    - name: Nieuwe VPS aanmaken op Contabo
+        access_token: "{{ result.json.access_token }}"
+        
+    - name: Maak VPS aan op Contabo
       uri:
         url: "https://api.contabo.com/v1/compute/instances"
         method: POST
         headers:
+          Authorization: "Bearer {{ access_token }}"
           Content-Type: "application/json"
-          Authorization: "Bearer T463_cr0jNMDrUuV3ndODCyxGPASgcrr1bBQX6mG"
-          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
-          x-trace-id: "123213"
         body:
-          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
-          productId: "V69"
           region: "EU"
-          sshKeys: []
-          rootPassword: "Bilspleet21?"
+          productId: "V69"
+          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
           period: 1
-          displayName: "{{ vps_naam }}"
-        body_format: json
-        status_code: 201
-      register: vps_response
+          displayName: "vps408.rafikiserver.nl"
+          rootPassword: "Bilspleet21?"
+        return_content: yes
+      register: vps_creation_response
 
-    - name: Geef de respons van de VPS aanmaak weer
+    - name: Toon VPS creatie resultaat
       debug:
-        var: vps_response
+        msg: "{{ vps_creation_response }}"
