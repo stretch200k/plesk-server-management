@@ -1,55 +1,78 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
-  connection: local
   hosts: localhost
+  gather_facts: no
+  vars:
+    CLIENT_ID: "INT-13273960"
+    CLIENT_SECRET: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
+    API_USER: "support@rafikihosting.nl"
+    API_PASSWORD: "Bilspleet21?"
+    root_password: "Bilspleet21?"
+    access_token: ""
+
   tasks:
     - name: Verkrijg API-token van Contabo
       uri:
         url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
         method: POST
-        headers:
-          Content-Type: "application/x-www-form-urlencoded"
-        body: "client_id=INT-13273960&client_secret=rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ&username=support@rafikihosting.nl&password=Bilspleet21?&grant_type=password"
-        body_format: raw
+        body:
+          client_id: "{{ CLIENT_ID }}"
+          client_secret: "{{ CLIENT_SECRET }}"
+          username: "{{ API_USER }}"
+          password: "{{ API_PASSWORD }}"
+          grant_type: "password"
+        body_format: form-urlencoded
         return_content: yes
-      register: token_response
+      register: oauth_response
 
     - name: Set the access token as a fact
       set_fact:
-        access_token: "{{ token_response.json.access_token }}"
+        access_token: "{{ oauth_response.json.access_token }}"
 
-    - name: Set de huidige datum in voor de VPS naam
-      set_fact:
-        current_date: "{{ lookup('pipe', 'date +%Y%m%d%H%M%S') }}"
-
-    - name: Genereer VPS naam
-      set_fact:
-        vps_name: "vps{{ current_date }}.rafikiserver.nl"
-
-    - name: Genereer een unieke x-request-id
-      set_fact:
-        x_request_id: "{{ lookup('pipe', 'uuidgen') }}"
-
-    - name: Nieuwe VPS aanmaken op Contabo
+    - name: Create secret for root password
       uri:
-        url: "https://api.contabo.com/v1/compute/instances"
+        url: "https://api.contabo.com/v1/secrets"
         method: POST
         headers:
           Authorization: "Bearer {{ access_token }}"
-          Content-Type: "application/json"
-          x-request-id: "{{ x_request_id }}"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
         body:
-          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
-          productId: "V69"
-          region: "EU"
-          sshKeys: []
-          rootPassword: "Bilspleet21?"
-          displayName: "{{ vps_name }}"
-          period: 1
+          name: "rootPassword"
+          value: "{{ root_password }}"
+          type: "password"
         body_format: json
         return_content: yes
-      register: vps_creation_response
+      register: secret_creation
 
-    - name: Toon resultaat van VPS aanmaak
+    - name: Set the current date for VPS name
+      set_fact:
+        current_date: "{{ ansible_date_time.date }}"
+
+    - name: Generate VPS name
+      set_fact:
+        vps_name: "vps{{ current_date | replace('-', '') }}.rafikiserver.nl"
+
+    - name: Create new VPS on Contabo
+      uri:
+        url: "https://api.contabo.com/v1/instances"
+        method: POST
+        headers:
+          Authorization: "Bearer {{ access_token }}"
+          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
+        body:
+          imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
+          productId: "V76"
+          region: "EU"
+          sshKeys: []
+          rootPassword: "{{ secret_creation.json.id }}"
+          userData: "#cloud-config\nhostname: {{ vps_name }}"
+          period: 1
+          displayName: "{{ vps_name }}"
+          defaultUser: "root"
+        body_format: json
+        return_content: yes
+      register: vps_creation
+
+    - name: Show VPS creation response
       debug:
-        var: vps_creation_response
+        var: vps_creation
