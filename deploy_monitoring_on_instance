@@ -1,0 +1,49 @@
+---
+- name: Werk Prometheus-configuratie bij met AWX IP's
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    prom_config_path: "/etc/prometheus/prometheus.yml"
+    awx_api_token: "MoWalW6XysmG6hWmVB1tWHM3HhWhkW"
+    inventory_id: 2  # AWX inventory ID
+
+  tasks:
+    - name: Verkrijg AWX hosts en IP's
+      uri:
+        url: "http://185.107.90.120:31151/api/v2/inventories/{{ inventory_id }}/hosts/"
+        headers:
+          Authorization: "Bearer {{ awx_api_token }}"
+        return_content: yes
+      register: awx_host_data
+
+    - name: Lees de bestaande Prometheus-configuratie
+      slurp:
+        src: "{{ prom_config_path }}"
+      register: prometheus_config_raw
+
+    - name: Decodeer de Prometheus-configuratie
+      set_fact:
+        prometheus_config: "{{ prometheus_config_raw.content | b64decode | from_yaml }}"
+
+    - name: Voeg nieuwe targets toe aan Prometheus-configuratie
+      set_fact:
+        new_targets: "{{ awx_host_data.json.results | selectattr('name', 'defined') | map(attribute='name') | map('regex_replace', '^', 'http://') | map('regex_replace', '$', ':9100') | list }}"
+
+    - name: Verwijder oude targets die niet meer bestaan
+      set_fact:
+        updated_targets: "{{ prometheus_config.scrape_configs[0].static_configs[0].targets | difference(new_targets) }}"
+
+    - name: Voeg de nieuwe targets toe aan de configuratie
+      set_fact:
+        prometheus_config_updated: "{{ prometheus_config | merge({'scrape_configs': [{'job_name': 'node_exporter', 'static_configs': [{'targets': new_targets + updated_targets}]}]}) }}"
+
+    - name: Sla de bijgewerkte Prometheus-configuratie op
+      copy:
+        dest: "{{ prom_config_path }}"
+        content: "{{ prometheus_config_updated | to_yaml | indent(2) }}"
+      
+    - name: Herstart Prometheus om de configuratie te laden
+      systemd:
+        name: prometheus
+        state: restarted
