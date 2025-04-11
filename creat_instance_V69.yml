@@ -7,14 +7,14 @@
       uri:
         url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
         method: POST
+        headers:
+          Content-Type: "application/json"
         body:
           client_id: "INT-13273960"
           client_secret: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
           username: "support@rafikihosting.nl"
           password: "Bilspleet21?"
           grant_type: "password"
-        headers:
-          Content-Type: "application/x-www-form-urlencoded"
         return_content: yes
       register: result
 
