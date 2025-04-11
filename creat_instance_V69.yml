@@ -1,78 +1,38 @@
 ---
 - name: Nieuwe VPS aanmaken op Contabo
-  hosts: localhost
-  gather_facts: no
   connection: local
-  vars:
-    CLIENT_ID: "INT-13273960"
-    CLIENT_SECRET: "rJMKuzUtEDNqYCr23NY6Qn3mhTZCqrJQ"
-    API_USER: "support@rafikihosting.nl"
-    API_PASSWORD: "Bilspleet21?"
-    root_password: "Bilspleet21?"
-    access_token: ""
-    secret_id: ""
-
+  hosts: localhost
   tasks:
+
     - name: Verkrijg API-token van Contabo
       uri:
         url: "https://auth.contabo.com/auth/realms/contabo/protocol/openid-connect/token"
         method: POST
         body:
-          client_id: "{{ CLIENT_ID }}"
-          client_secret: "{{ CLIENT_SECRET }}"
-          username: "{{ API_USER }}"
-          password: "{{ API_PASSWORD }}"
+          client_id: "{{ contabo_client_id }}"
+          client_secret: "{{ contabo_client_secret }}"
+          username: "{{ contabo_api_user }}"
+          password: "{{ contabo_api_password }}"
           grant_type: "password"
-        body_format: form-urlencoded
+        body_format: json
         return_content: yes
-      register: oauth_response
+      register: auth_response
 
     - name: Set the access token as a fact
       set_fact:
-        access_token: "{{ oauth_response.json.access_token }}"
-
-    - name: Check if root password secret exists
-      uri:
-        url: "https://api.contabo.com/v1/secrets"
-        method: GET
-        headers:
-          Authorization: "Bearer {{ access_token }}"
-        return_content: yes
-      register: secret_check_response
-
-    - name: Set secretId if rootPassword exists
-      set_fact:
-        secret_id: "{{ secret_check_response.json.data | selectattr('name', 'equalto', 'rootPassword') | map(attribute='secretId') | first }}"
-      when: secret_check_response.json.data | selectattr('name', 'equalto', 'rootPassword') | length > 0
-
-    - name: Create secret for root password if not exists
-      uri:
-        url: "https://api.contabo.com/v1/secrets"
-        method: POST
-        headers:
-          Authorization: "Bearer {{ access_token }}"
-          x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
-        body:
-          name: "rootPassword"
-          value: "{{ root_password }}"
-          type: "password"
-        body_format: json
-        return_content: yes
-      when: secret_id is not defined
-      register: secret_creation
-
-    - name: Set secretId if rootPassword was created
-      set_fact:
-        secret_id: "{{ secret_creation.json.data[0].secretId }}"
-      when: secret_id is not defined
+        access_token: "{{ auth_response.json.access_token }}"
 
     - name: Set de huidige datum in voor de VPS naam
       set_fact:
-        current_date: "{{ ansible_date_time.date }}"
+        vps_name_date: "{{ ansible_date_time.iso8601_basic_short }}"
 
     - name: Genereer VPS naam
       set_fact:
-        vps_name: "vps{{ current_date | replace('-', '') }}.rafikiserver.nl"
+        vps_name: "vps{{ vps_name_date }}.rafikiserver.nl"
+
+    - name: Set the existing rootPassword secretId
+      set_fact:
+        secret_id: "156377"  # De ID van het eerder aangemaakte geheim
 
     - name: Nieuwe VPS aanmaken op Contabo
       uri:
@@ -83,15 +43,14 @@
           x-request-id: "{{ lookup('pipe', 'uuidgen') }}"
         body:
           imageId: "afecbb85-e2fc-46f0-9684-b46b1faf00bb"
-          productId: "V76"
+          productId: "V69"
           region: "EU"
           sshKeys: []
           rootPassword: "{{ secret_id }}"
           userData: "#cloud-config\nhostname: {{ vps_name }}"
-          license: "PleskAdmin"
           period: 1
           displayName: "{{ vps_name }}"
-          defaultUser: "admin"
+          defaultUser: "root"
         body_format: json
         return_content: yes
       register: vps_creation
